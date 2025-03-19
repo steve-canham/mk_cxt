@@ -1,6 +1,9 @@
 
 pub mod setup;
 pub mod err;
+mod locs;
+mod orgs;
+mod umls;
 
 use setup::cli_reader;
 use err::AppError;
