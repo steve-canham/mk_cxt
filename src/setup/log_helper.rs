@@ -71,10 +71,10 @@
      info!("");
      info!("************************************");
      info!("");
-     info!("data_folder: {}", ip.data_folder.display());
      info!("log_folder: {}", ip.log_folder.display());
-     info!("import_data: {}", ip.flags.import_data);
-     info!("include non Latin: {}", ip.flags.include_nonlatin);
+     info!("importing organisation data: {}", ip.flags.import_orgs);
+     info!("importing location data: {}", ip.flags.import_locs);
+     info!("importing UMLS data: {}", ip.flags.import_umls);
      info!("");
      info!("************************************");
      info!("");

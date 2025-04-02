@@ -6,6 +6,7 @@ use crate::err::AppError;
 use sqlx::postgres::{PgPoolOptions, PgConnectOptions, PgPool};
 use std::path::PathBuf;
 use cli_reader::{CliPars, Flags};
+use config_reader::DBPars;
 use std::fs;
 use std::time::Duration;
 use sqlx::ConnectOptions;
@@ -13,7 +14,6 @@ use config_reader::Config;
 use std::sync::OnceLock;
 
 pub struct InitParams {
-    pub data_folder: PathBuf,
     pub log_folder: PathBuf,
     pub flags: Flags,
 }
@@ -29,35 +29,16 @@ pub fn get_params(cli_pars: CliPars, config_string: &String) -> Result<InitParam
     // If folder name also given in CL args the CL version takes precedence
     
     let config_file: Config = config_reader::populate_config_vars(&config_string)?; 
-    let folder_pars = config_file.folders;  // guaranteed to exist
+    let folder_pars = config_file.folders;  
 
-    let empty_pb = PathBuf::from("");
-    let mut data_folder_good = true;
-
-    let data_folder =  folder_pars.data_folder_path;
-    if !folder_exists (&data_folder) 
-    {   
-        data_folder_good = false;
-    }
-
-    if !data_folder_good && cli_pars.flags.import_data { 
-        return Result::Err(AppError::MissingProgramParameter("data_folder".to_string()));
-    }
-
-    let mut log_folder = folder_pars.log_folder_path;
-    if log_folder == empty_pb && data_folder_good {
-        log_folder = data_folder.clone();
-    }
-    else {
-        if !folder_exists (&log_folder) { 
+    let log_folder = folder_pars.log_folder_path;  // guaranteed to exist as essential parameter
+    if !folder_exists (&log_folder) { 
             fs::create_dir_all(&log_folder)?;
-        }
     }
    
     // For execution flags read from the environment variables
     
     Ok(InitParams {
-        data_folder,
         log_folder,
         flags: cli_pars.flags,
     })
@@ -76,8 +57,7 @@ fn folder_exists(folder_name: &PathBuf) -> bool {
 }
         
 
-
-pub async fn get_db_pool() -> Result<PgPool, AppError> {  
+pub async fn get_cxt_db_pool() -> Result<PgPool, AppError> {  
 
     // Establish DB name and thence the connection string
     // (done as two separate steps to allow for future development).
@@ -85,7 +65,7 @@ pub async fn get_db_pool() -> Result<PgPool, AppError> {
     // the time threshold for warnings. Set up a DB pool option and 
     // connect using the connection options object.
 
-    let db_name = match config_reader::fetch_db_name() {
+    let db_name = match config_reader::fetch_cxt_db_name() {
         Ok(n) => n,
         Err(e) => return Err(e),
     };
@@ -100,6 +80,11 @@ pub async fn get_db_pool() -> Result<PgPool, AppError> {
         .max_connections(5) 
         .connect_with(opts).await
         .map_err(|e| AppError::DBPoolError(format!("Problem with connecting to database {} and obtaining Pool", db_name), e))
+}
+
+
+pub fn fetch_db_pars() -> Result<DBPars, AppError> {
+    config_reader::fetch_db_pars()
 }
 
 
@@ -121,6 +106,76 @@ pub fn log_set_up() -> bool {
 }
 
 
+pub async fn set_up_foreign_tables(pool: &PgPool, data_type: &str) -> Result<(), AppError> {
+
+    let dbp = config_reader::fetch_db_pars()?;
+
+    let source = match data_type {
+        "locs" => dbp.locs_db_name, 
+        "orgs" => dbp.orgs_db_name, 
+        "umls" => dbp.umls_db_name, 
+        "pubs" => dbp.pubs_db_name, 
+        _ => "".to_string(),
+    };
+    
+    // Operating in the cxt database. The lup schema can be guaranteed to exist
+    // (it holds the look up tables independent of FTW data)
+    // so use lup to hold the postgres_fdw if necessary
+    
+    let sql = "CREATE EXTENSION IF NOT EXISTS postgres_fdw WITH SCHEMA lup;";  // WITH SCHEMA <schema> required the first time in DB
+    sqlx::raw_sql(sql).execute(pool)
+    .await.map_err(|e| AppError::SqlxError(e, sql.to_string()))?;
+
+    let sql = format!("CREATE SERVER IF NOT EXISTS {} ", source)
+    + " FOREIGN DATA WRAPPER postgres_fdw "
+    + &format!("OPTIONS (host '{}', dbname '{}', port '{}')", dbp.db_host, source, dbp.db_port);
+    sqlx::raw_sql(&sql).execute(pool)
+    .await.map_err(|e| AppError::SqlxError(e, sql.to_string()))?;
+
+    let sql = "CREATE USER MAPPING IF NOT EXISTS FOR CURRENT_USER".to_string()
+    + &format!(" SERVER {} ", source)
+    + &format!(" OPTIONS (user '{}', password '{}')", dbp.db_user, dbp.db_password);
+    sqlx::raw_sql(&sql).execute(pool)
+    .await.map_err(|e| AppError::SqlxError(e, sql.to_string()))?;
+                    
+    let sql = format!("DROP SCHEMA IF EXISTS ftw_{} cascade;", source)
+    + &format!(" CREATE SCHEMA ftw_{};", source)
+    + &format!(" IMPORT FOREIGN SCHEMA {}", source)
+    + &format!(" FROM SERVER {}", source)
+    + &format!(" INTO ftw_{};", source);
+    sqlx::raw_sql(&sql).execute(pool)
+    .await.map_err(|e| AppError::SqlxError(e, sql.to_string()))?;
+    
+    Ok(())
+
+}
+
+
+pub async fn drop_foreign_tables(pool: &PgPool, data_type: &str) -> Result<(), AppError> {
+
+    let dbp = config_reader::fetch_db_pars()?;
+
+    let source = match data_type {
+        "locs" => dbp.locs_db_name, 
+        "orgs" => dbp.orgs_db_name, 
+        "umls" => dbp.umls_db_name, 
+        "pubs" => dbp.pubs_db_name, 
+        _ => "".to_string(),
+    };
+    
+    let sql = format!("DROP SCHEMA IF EXISTS ftw_{} cascade;", source)
+        + &format!("DROP USER MAPPING IF EXISTS FOR CURRENT_USER SERVER {} ;", source)
+        + &format!("DROP SERVER IF EXISTS {} ;", source);
+
+    sqlx::raw_sql(&sql).execute(pool)
+    .await.map_err(|e| AppError::SqlxError(e, sql.to_string()))?;
+
+    Ok(())
+}
+
+
+
+
 // Tests
 #[cfg(test)]
 
@@ -129,19 +184,18 @@ mod tests {
     use std::ffi::OsString;
 
     #[test]
-    fn check_config_vars_read_correctly() {
+    fn check_min_pars_read_correctly() {
 
         let config = r#"
 [folders]
-data_folder_path="E:\\MDR source data\\Geonames\\data"
-log_folder_path="E:\\MDR source data\\Geonames\\logs"
-output_folder_path="E:\\MDR source data\\Geonames\\outputs"
+log_folder_path="E:\\MDR source data\\cxt\\logs1"
 
 [database]
 db_host="localhost"
 db_user="user_name"
 db_password="password"
 db_port="5433"
+
 "#;
         let config_string = config.to_string();
         config_reader::populate_config_vars(&config_string).unwrap();
@@ -151,39 +205,88 @@ db_port="5433"
         let cli_pars = cli_reader::fetch_valid_arguments(test_args).unwrap();
 
         let res = get_params(cli_pars, &config_string).unwrap();
-
-        assert_eq!(res.flags.import_data, true);
-        assert_eq!(res.flags.test_run, false);
-        assert_eq!(res.data_folder, PathBuf::from("E:\\MDR source data\\Geonames\\data"));
-        assert_eq!(res.log_folder, PathBuf::from("E:\\MDR source data\\Geonames\\logs"));
+        assert_eq!(res.flags.create_lups, true);
+        assert_eq!(res.flags.import_locs, false);
+        assert_eq!(res.flags.import_orgs, false);
+        assert_eq!(res.flags.import_umls, false);
+        assert_eq!(res.flags.import_pubs, false);
+        assert_eq!(res.log_folder, PathBuf::from("E:\\MDR source data\\cxt\\logs1"));
 
     }
-   
-    
+
+
     #[test]
-    #[should_panic]
-    fn check_wrong_data_folder_panics() {
+    fn check_config_vars_read_correctly() {
 
         let config = r#"
 [folders]
-data_folder_path="C:\\MDR source data\\Geonames\\data"
-log_folder_path="E:\\MDR source data\\Geonames\\logs"
-output_folder_path="E:\\MDR source data\\Geonames\\outputs"
+log_folder_path="E:\\MDR source data\\cxt\\logs1"
 
 [database]
 db_host="localhost"
 db_user="user_name"
 db_password="password"
 db_port="5433"
+
+cnxt_db_name="cxt"
+orgs_db_name="ror"
+locs_db_name="geo"
+umls_db_name="uml"
+pubs_db_name="pub"
+
+"#;
+        let config_string = config.to_string();
+        config_reader::populate_config_vars(&config_string).unwrap();
+
+        let args : Vec<&str> = vec!["dummy target", "-c", "-p"];
+        let test_args = args.iter().map(|x| x.to_string().into()).collect::<Vec<OsString>>();
+        let cli_pars = cli_reader::fetch_valid_arguments(test_args).unwrap();
+
+        let res = get_params(cli_pars, &config_string).unwrap();
+        assert_eq!(res.flags.create_lups, false);
+        assert_eq!(res.flags.import_locs, true);
+        assert_eq!(res.flags.import_orgs, false);
+        assert_eq!(res.flags.import_umls, false);
+        assert_eq!(res.flags.import_pubs, true);
+        assert_eq!(res.log_folder, PathBuf::from("E:\\MDR source data\\cxt\\logs1"));
+
+    }
+   
+    
+    #[test]
+    fn check_all_flags_read() {
+
+        let config = r#"
+[folders]
+log_folder_path="E:\\MDR source data\\cxt\\logs2"
+
+[database]
+db_host="localhost"
+db_user="user_name"
+db_password="password"
+db_port="5433"
+
+cnxt_db_name="cxt"
+orgs_db_name="ror"
+locs_db_name="geo"
+umls_db_name="uml"
+pubs_db_name="pub"
+
 "#;
         let config_string = config.to_string();
         config_reader::populate_config_vars(&config_string).unwrap();
         
-        let args : Vec<&str> = vec!["dummy target", "-r"];
+        let args : Vec<&str> = vec!["dummy target", "-c", "-u", "-g", "-p", "-k"];
         let test_args = args.iter().map(|x| x.to_string().into()).collect::<Vec<OsString>>();
         let cli_pars = cli_reader::fetch_valid_arguments(test_args).unwrap();
 
-        let _res = get_params(cli_pars, &config_string).unwrap();
+        let res = get_params(cli_pars, &config_string).unwrap();
+        assert_eq!(res.flags.create_lups, true);
+        assert_eq!(res.flags.import_locs, true);
+        assert_eq!(res.flags.import_orgs, true);
+        assert_eq!(res.flags.import_umls, true);
+        assert_eq!(res.flags.import_pubs, true);
+        assert_eq!(res.log_folder, PathBuf::from("E:\\MDR source data\\cxt\\logs2"));
     }
 }
 
