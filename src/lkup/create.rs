@@ -161,13 +161,12 @@ pub fn language_codes<'a>() -> &'a str {
     );"#
 }
 
+
 pub fn language_scripts<'a>() -> &'a str {
 
     r#"drop table if exists lup.language_scripts;
     CREATE TABLE lup.language_scripts (
-        id                 int4       NOT NULL PRIMARY KEY,
-        name               varchar    NULL,
-        code               varchar(4) NULL,
+        code               varchar(4) NOT NULL PRIMARY KEY,
 	    unicode_name       varchar    NULL,
 	    iso_name           varchar    NULL,
 	    directionality     varchar    NULL,
@@ -366,7 +365,6 @@ pub fn size_units<'a>() -> &'a str {
     CREATE TABLE lup.size_units (
         id                 int4       NOT NULL PRIMARY KEY,
         name               varchar    NULL,
-        description        varchar    NULL,
 	    list_order         int4       DEFAULT 10 NOT NULL,
 	    source_org         varchar    NULL,
 	    date_added         date       NULL
@@ -449,7 +447,6 @@ pub fn time_units<'a>() -> &'a str {
     CREATE TABLE lup.time_units (
         id                 int4       NOT NULL PRIMARY KEY,
         name               varchar    NULL,
-        description        varchar    NULL,
 	    use_in_data_entry  bool       NULL,
 	    list_order         int4       DEFAULT 10 NOT NULL,
 	    source_org         varchar    NULL,

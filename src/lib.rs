@@ -27,7 +27,7 @@ pub async fn run(args: Vec<OsString>) -> Result<(), AppError> {
     setup::establish_log(&params)?;
     let pool = setup::get_cxt_db_pool().await?;
 
-    if flags.import_locs {
+    if flags.create_lups {
 
         lkup::create_tables(&pool).await?;
         lkup::fill_tables(&pool).await?;
