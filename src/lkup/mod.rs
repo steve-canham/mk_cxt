@@ -15,7 +15,7 @@ async fn execute_sql(sql: &str, pool: &Pool<Postgres>) -> Result<PgQueryResult, 
 
 pub async fn create_tables(pool: &Pool<Postgres>) -> Result<(), AppError> {
 
-    execute_sql(create::get_schema_sql(), pool).await?;
+    execute_sql(create::create_schema_sql(), pool).await?;
     execute_sql(create::contribution_types(), pool).await?;
     execute_sql(create::dataset_consent_types(), pool).await?;
     execute_sql(create::dataset_deidentification_levels(), pool).await?;
@@ -51,7 +51,7 @@ pub async fn create_tables(pool: &Pool<Postgres>) -> Result<(), AppError> {
     execute_sql(create::topic_types(), pool).await?;
     execute_sql(create::topic_vocabularies(), pool).await?;
     execute_sql(create::trial_registries(), pool).await?;
-    execute_sql(create::get_message_sql(), pool).await?;
+    execute_sql(create::reset_message_sql(), pool).await?;
 
     Ok(())
 }

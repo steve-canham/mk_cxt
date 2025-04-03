@@ -29,6 +29,8 @@ pub async fn run(args: Vec<OsString>) -> Result<(), AppError> {
 
     if flags.create_lups {
 
+        // (re)creates the MDR based lookup tables
+
         lkup::create_tables(&pool).await?;
         lkup::fill_tables(&pool).await?;
     }
@@ -41,8 +43,14 @@ pub async fn run(args: Vec<OsString>) -> Result<(), AppError> {
 
         // Transfer the data to the relevant context schema
 
+        locs::create_mdr_tables(&pool).await?;
+        
         // Further process that data, if and as necessary
 
+        locs::create_city_data(&pool).await?;
+        locs::create_country_data(&pool).await?;
+        locs::create_scope_data(&pool).await?;
+      
         // remove the foreign tables from the context database
 
         drop_foreign_tables(&pool, "locs").await?;

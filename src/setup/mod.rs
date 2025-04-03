@@ -122,7 +122,7 @@ pub async fn set_up_foreign_tables(pool: &PgPool, data_type: &str) -> Result<(),
     // (it holds the look up tables independent of FTW data)
     // so use lup to hold the postgres_fdw if necessary
     
-    let sql = "CREATE EXTENSION IF NOT EXISTS postgres_fdw WITH SCHEMA lup;";  // WITH SCHEMA <schema> required the first time in DB
+    let sql = "CREATE EXTENSION IF NOT EXISTS postgres_fdw WITH SCHEMA lkup;";  // WITH SCHEMA <schema> required the first time in DB
     sqlx::raw_sql(sql).execute(pool)
     .await.map_err(|e| AppError::SqlxError(e, sql.to_string()))?;
 
