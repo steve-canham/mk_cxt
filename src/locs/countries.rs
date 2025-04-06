@@ -3,7 +3,7 @@ use crate::AppError;
 use log::info;
 
 
-pub async fn create_schema_and_aet_message_level(pool: &Pool<Postgres>) -> Result<(), AppError> {
+pub async fn create_schema_and_set_message_level(pool: &Pool<Postgres>) -> Result<(), AppError> {
 
     let sql = r#"SET client_min_messages TO WARNING; 
             create schema if not exists locs;"#;

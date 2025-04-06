@@ -65,6 +65,11 @@ pub async fn run(args: Vec<OsString>) -> Result<(), AppError> {
 
         // Transfer the data to the relevant context schema
 
+        orgs::load_ror_data(&pool).await?;
+
+        orgs::process_ror_data(&pool).await?;
+        
+
         // Further process that data, if and as necessary
 
         // remove the foreign tables from the context database

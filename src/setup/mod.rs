@@ -117,6 +117,14 @@ pub async fn set_up_foreign_tables(pool: &PgPool, data_type: &str) -> Result<(),
         "pubs" => dbp.pubs_db_name, 
         _ => "".to_string(),
     };
+
+    let schema = match data_type {
+        "locs" => "geo", 
+        "orgs" => "src", 
+        "umls" => "icd", 
+        "pubs" => "pub", 
+        _ => "",
+    };
     
     // Operating in the cxt database. The lup schema can be guaranteed to exist
     // (it holds the look up tables independent of FTW data)
@@ -140,7 +148,7 @@ pub async fn set_up_foreign_tables(pool: &PgPool, data_type: &str) -> Result<(),
                     
     let sql = format!("DROP SCHEMA IF EXISTS ftw_{} cascade;", source)
     + &format!(" CREATE SCHEMA ftw_{};", source)
-    + &format!(" IMPORT FOREIGN SCHEMA {}", source)
+    + &format!(" IMPORT FOREIGN SCHEMA {}", schema)
     + &format!(" FROM SERVER {}", source)
     + &format!(" INTO ftw_{};", source);
     sqlx::raw_sql(&sql).execute(pool)

@@ -8,7 +8,7 @@ use sqlx::{Pool, Postgres};
 
 pub async fn create_mdr_tables(pool: &Pool<Postgres>) -> Result<(), AppError> {
 
-    countries::create_schema_and_aet_message_level(pool).await?;
+    countries::create_schema_and_set_message_level(pool).await?;
     countries::create_country_names_table(pool).await?;
     countries::transfer_country_names_to_mdr(pool).await?;
 

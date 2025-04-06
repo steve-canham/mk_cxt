@@ -534,15 +534,14 @@ pub fn org_name_qualifier_types<'a>() -> &'a str {
           list_order, source_org, date_added)
        values 
         (1, 'Default', 'The default (and usual display) name. Should normally be in the dominant local language.', 10, 'ECRIN', '2020-06-01'),
-        (12, 'Also listed as', 'Alternative name, in any language, including English versions of the default name if different.', 20, 'ECRIN', '2020-06-01'),
-        (10, 'Abbreviated as', 'Abbreviation or acronym', 30, 'ECRIN', '2020-06-01'),
-        (11, 'Abbreviated name', 'Abbreviation or acronym that is common or distinct enopugh to be listed / matched as a valid name option', 35, 'ECRIN', '2023-08-02'),
-        (14, 'Full name', 'When not the default', 60, 'ECRIN', '2020-06-01'),
-        (16, 'Shortened to', 'Shortened version of the name as used colloquially, normally by local population', 70, 'ECRIN', '2020-06-01'),
-        (18, 'Previously known as', 'Historic name, no longer in current use', 80, 'ECRIN', '2020-06-01'),
-        (15, 'Minor variation', 'Minor variation or mis-spelt version of default or an alternative name, or one with a location suffix or different punctuation, that exists in source data but is not in normal usage.', 90, 'ECRIN', '2020-06-01'),
-        (19, 'External Foreign name', 'Name in a foreign language NOT generally used in local area (e.g. as found in a foreign listing)', 100, 'ECRIN', '2020-06-01');"#
+        (2, 'Also listed as', 'Alternative name, in any language, including English versions of the default name if different.', 20, 'ECRIN', '2020-06-01'),
+        (3, 'Abbreviated name', 'Abbreviation or acronym that is distinct enough to be listed / matched as a valid name option', 30, 'ECRIN', '2023-08-02'),
+        (10, 'Abbreviated as', 'Abbreviation or acronym', 50, 'ECRIN', '2020-06-01'),
+        (18, 'Previously known as', 'Historic name, no longer in current use', 60, 'ECRIN', '2020-06-01'),
+        (19, 'External Foreign name', 'Name in a foreign language NOT generally used in local area (e.g. as found in a foreign listing)', 70, 'ECRIN', '2020-06-01');
+        (20, 'Minor variation', 'Minor variation or mis-spelt version of a name, or one with a location suffix or different punctuation, that exists in source data but is not in normal usage.', 80, 'ECRIN', '2020-06-01');"#
 }
+
 
 
 pub fn org_relationship_types<'a>() -> &'a str {
