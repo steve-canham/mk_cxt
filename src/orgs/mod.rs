@@ -1,8 +1,6 @@
 mod ror;
-mod english;
-mod japanese;
-mod chinese;
-mod french;
+mod langs;
+
 
 use crate::err::AppError;
 use sqlx::{Pool, Postgres};
@@ -38,11 +36,25 @@ pub async fn process_ror_data(pool: &Pool<Postgres>) -> Result<(), AppError> {
     // Do language of acronyms where all other names have the same language
     // See what are left
 
-    english::update_english_names(pool).await?;
-    japanese::update_japanese_names(pool).await?;
-    chinese::update_chinese_names(pool).await?;
-    french::update_french_names(pool).await?;
+    langs::update_english_names(pool).await?;
+    langs::update_japanese_names(pool).await?;
+    langs::update_chinese_names(pool).await?;
+    langs::update_french_names(pool).await?;
+    langs::update_indian_names(pool).await?;
+    langs::update_iranian_names(pool).await?;
+    langs::update_russian_names(pool).await?;
+    langs::update_ukrainian_names(pool).await?;
+    langs::update_norwegian_names(pool).await?;
+    langs::update_serbian_names(pool).await?;
+    langs::update_bulgarian_names(pool).await?;
 
+        // israel
+        // greece ?
+        // korea
+        // taiwan +
+        // india +
+        // russia +
+ 
     // There are about 1600 names that begin with 'The '
     // These are often prtesented in source material without the 'The '.
     // 400 of them already include a name variant without the 'The., but
