@@ -17,7 +17,7 @@ pub async fn create_country_names_table(pool: &Pool<Postgres>) -> Result<(), App
     let sql = r#"drop table if exists locs.country_names;
             create table locs.country_names
             ( 
-                id                    int PRIMARY KEY GENERATED ALWAYS AS IDENTITY (START WITH 10001 INCREMENT BY 1) 
+                  id                  int PRIMARY KEY GENERATED ALWAYS AS IDENTITY (START WITH 10001 INCREMENT BY 1) 
                 , comp_name           varchar
                 , country_id          int
                 , iso_code            varchar
@@ -36,12 +36,12 @@ pub async fn create_country_names_table(pool: &Pool<Postgres>) -> Result<(), App
 pub async fn transfer_country_names_to_mdr(pool: &Pool<Postgres>) -> Result<(), AppError> {
 
     let sql = r#"insert into locs.country_names (comp_name, country_id, iso_code, 
-    country_name, continent, source)
-    select distinct lower(replace(cn.alt_name,'.', '')), c.id, c.iso_code, 
-    c.country_name, c.continent, 'geonames'
-    from ftw_geo.country_names cn
-    inner join ftw_geo.countries c
-    on cn.country_id = c.id;"#;
+        country_name, continent, source)
+        select distinct lower(replace(cn.alt_name,'.', '')), c.id, c.iso_code, 
+        c.country_name, c.continent, 'geonames'
+        from ftw_geo.country_names cn
+        inner join ftw_geo.countries c
+        on cn.country_id = c.id;"#;
 
     let res = sqlx::raw_sql(sql).execute(pool)
     .await.map_err(|e| AppError::SqlxError(e, sql.to_string()))?;

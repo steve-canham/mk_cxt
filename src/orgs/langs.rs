@@ -2,6 +2,21 @@ use sqlx::{Pool, Postgres};
 use crate::AppError;
 use log::info;
 
+pub async fn add_cm_lang_code_to_comm_orgs(pool: &Pool<Postgres>) -> Result<(), AppError> {
+
+    let sql = r#"update orgs.ror_names n
+                set lang_code = 'cm',
+                lang_source = 'cm_brand'
+                from orgs.ror_types t
+                where n.id = t.id
+                and t.org_type = 400"#;
+
+    let res = sqlx::raw_sql(sql).execute(pool)
+            .await.map_err(|e| AppError::SqlxError(e, sql.to_string()))?;
+    info!("{} names of commercial organisations given 'cm' language code", res.rows_affected());
+  
+    Ok(())
+}
 
 
 pub async fn update_english_names(pool: &Pool<Postgres>) -> Result<(), AppError> {
@@ -12,15 +27,14 @@ pub async fn update_english_names(pool: &Pool<Postgres>) -> Result<(), AppError>
         set lang_code = 'en'
         where n.lang_code is null
         and n.name_type <> 10
-        and (name_to_compare like '%university%' 
-        or name_to_compare like '%college%'
-        or name_to_compare like '%polytechnic%'
-        or name_to_compare like '%museum%'
-        or name_to_compare like '%center%'
-        or name_to_compare like '%institute%'
-        or name_to_compare like '%clinic%'
-        or name_to_compare like '%library%'
-        or name_to_compare like '%society%');"#;
+        and (name_to_match like '%university%' 
+        or name_to_match like '%college%'
+        or name_to_match like '%polytechnic%'
+        or name_to_match like '%museum%'
+        or name_to_match like '%center%'
+        or name_to_match like '%clinic%'
+        or name_to_match like '%library%'
+        or name_to_match like '%society%');"#;
 
     let res = sqlx::raw_sql(sql).execute(pool)
         .await.map_err(|e| AppError::SqlxError(e, sql.to_string()))?;
@@ -31,16 +45,16 @@ pub async fn update_english_names(pool: &Pool<Postgres>) -> Result<(), AppError>
         set lang_code = 'en'
         where n.lang_code is null
         and n.name_type <> 10
-        and (name_to_compare like '%foundation%'
-        or name_to_compare like '% trust%'
-        or name_to_compare like '%laboratory%'
-        or name_to_compare like '%laboratories%'
-        or name_to_compare like '%bureau%'
-        or name_to_compare like '%academy%'
-        or name_to_compare like '% zoo%'
-        or name_to_compare like '% park%'
-         or name_to_compare like '% garden%'
-        or name_to_compare like '%wikimedia%');"#;
+        and (name_to_match like '%foundation%'
+        or name_to_match like '% trust%'
+        or name_to_match like '%laboratory%'
+        or name_to_match like '%laboratories%'
+        or name_to_match like '%bureau%'
+        or name_to_match like '%academy%'
+        or name_to_match like '% zoo%'
+        or name_to_match like '% park%'
+         or name_to_match like '% garden%'
+        or name_to_match like '%wikimedia%');"#;
 
     let res = sqlx::raw_sql(sql).execute(pool)
         .await.map_err(|e| AppError::SqlxError(e, sql.to_string()))?;
@@ -51,8 +65,8 @@ pub async fn update_english_names(pool: &Pool<Postgres>) -> Result<(), AppError>
         set lang_code = 'en'
         where n.lang_code is null
         and n.name_type <> 10
-        and n.name_to_compare like '%observatory%'
-        and n.name_to_compare like '%observatories%'
+        and (n.name_to_match like '%observatory%'
+        or n.name_to_match like '%observatories%')
         and n.name not like '%ПМФ%'
     "#;
 
@@ -65,8 +79,8 @@ pub async fn update_english_names(pool: &Pool<Postgres>) -> Result<(), AppError>
             set lang_code = 'en'
             where n.lang_code is null
             and n.name_type <> 10
-            and n.name_to_compare like '%school%'
-            and n.name_to_compare not like '%hochshule%'
+            and n.name_to_match like '%school%'
+            and n.name_to_match not like '%hochshule%'
         "#;
     
     let res = sqlx::raw_sql(sql).execute(pool)
@@ -80,7 +94,7 @@ pub async fn update_english_names(pool: &Pool<Postgres>) -> Result<(), AppError>
     where n.id = c.id
     and n.lang_code is null
     and n.name_type <> 10
-    and name_to_compare like '%hospital%'
+    and name_to_match like '%hospital%'
     and c.country_code not in ('AR', 'BO', 'CL', 'CO', 'CR', 'CU', 'DO', 'EC', 
     'ES', 'GQ', 'GT', 'HN', 'MX', 'NI', 'PE', 'PY', 'UY', 'VE', 
     'PT', 'BR', 'CV', 'AO', 'MZ', 'GW', 'ST', 'TL' );"#;
@@ -94,35 +108,24 @@ pub async fn update_english_names(pool: &Pool<Postgres>) -> Result<(), AppError>
     set lang_code = 'en'
     where n.lang_code is null
     and n.name_type <> 10
-    and name_to_compare like '%network%'  
-    and name_to_compare not like '%researcherenye%'"#;
+    and name_to_match like '%network%'  
+    and name_to_match not like '%researcherenye%'"#;
     
     let res = sqlx::raw_sql(sql).execute(pool)
         .await.map_err(|e| AppError::SqlxError(e, sql.to_string()))?;
     total_records_affected += res.rows_affected();
 
-    info!("{} language code added to english names", total_records_affected);
+    info!("{} language codes added to english names", total_records_affected);
 
     Ok(())
+
+    // institite and centre??? - soplit between anglophone and francophone...
 }
 
 
 pub async fn update_japanese_names(pool: &Pool<Postgres>) -> Result<(), AppError> {
 
     let mut total_records_affected = 0;
-
-    let sql = r#"update orgs.ror_names n
-                set lang_code = 'ja'
-                from orgs.ror_countries c
-                where n.id = c.id
-                and n.lang_code is null
-                and n.name_type <> 10
-                and c.country_code = 'JP'
-                and n.script_code <> 'Latn'"#;
-
-    let res = sqlx::raw_sql(sql).execute(pool)
-        .await.map_err(|e| AppError::SqlxError(e, sql.to_string()))?;
-    total_records_affected += res.rows_affected();
 
     let sql = r#"update orgs.ror_names n
             set lang_code = 'ja'
@@ -132,12 +135,12 @@ pub async fn update_japanese_names(pool: &Pool<Postgres>) -> Result<(), AppError
             and n.name_type <> 10
             and c.country_code = 'JP'
             and 
-            (name_to_compare like '%daigaku%'
-            or name_to_compare like '%daigakkō%'
-            or name_to_compare like '%kabushiki%'
-            or name_to_compare like '%nippon%' 
-            or name_to_compare like '%kaihatsu%' 
-            or name_to_compare like '%bijutsukan%');"#;   
+            (name_to_match like '%daigaku%'
+            or name_to_match like '%daigakkō%'
+            or name_to_match like '%kabushiki%'
+            or name_to_match like '%nippon%' 
+            or name_to_match like '%kaihatsu%' 
+            or name_to_match like '%bijutsukan%');"#;   
             
             // university
             // college
@@ -158,21 +161,21 @@ pub async fn update_japanese_names(pool: &Pool<Postgres>) -> Result<(), AppError
             and n.name_type <> 10
             and c.country_code = 'JP'
             and 
-            (name_to_compare like '%kenritsu%' 
-            or name_to_compare like '%dokuritsu%'  
-            or name_to_compare like '% kikō%'
-            or name_to_compare like '% gakkō%'
-            or name_to_compare like '%kaihatsu%'
-            or name_to_compare like '%-shō%'
-            or name_to_compare like '%bunka senta%' 
-            or name_to_compare like '%denryoku%'  
-            or name_to_compare like '%gakuen%'
-            or name_to_compare like '%kagaku-kan%'
-            or name_to_compare like '%bungaku-kan%'
-            or name_to_compare like '%-chō%'
-            or name_to_compare like '%kotogakko%'
-            or name_to_compare like '%mongakkō%'
-            or name_to_compare like '%mongakkou%');"#;
+            (name_to_match like '%kenritsu%' 
+            or name_to_match like '%dokuritsu%'  
+            or name_to_match like '% kikō%'
+            or name_to_match like '% gakkō%'
+            or name_to_match like '%kaihatsu%'
+            or name_to_match like '%-shō%'
+            or name_to_match like '%bunka senta%' 
+            or name_to_match like '%denryoku%'  
+            or name_to_match like '%gakuen%'
+            or name_to_match like '%kagaku-kan%'
+            or name_to_match like '%bungaku-kan%'
+            or name_to_match like '%-chō%'
+            or name_to_match like '%kotogakko%'
+            or name_to_match like '%mongakkō%'
+            or name_to_match like '%mongakkou%');"#;
 
             // prefectural
             // independent
@@ -201,12 +204,12 @@ pub async fn update_japanese_names(pool: &Pool<Postgres>) -> Result<(), AppError
             and n.lang_code is null
             and n.name_type <> 10
             and c.country_code = 'JP'
-            and (name_to_compare like '%chuobyoin%'
-            or name_to_compare like '%shiritsu%'  
-            or name_to_compare like '%kenkyūjo%'
-            or name_to_compare like '%kenkei%'
-            or name_to_compare like '%kyōdō%'
-            or name_to_compare like '%kenkyūsho%');"#;
+            and (name_to_match like '%chuobyoin%'
+            or name_to_match like '%shiritsu%'  
+            or name_to_match like '%kenkyūjo%'
+            or name_to_match like '%kenkei%'
+            or name_to_match like '%kyōdō%'
+            or name_to_match like '%kenkyūsho%');"#;
             
             // medical center
             // municipal
@@ -225,11 +228,11 @@ pub async fn update_japanese_names(pool: &Pool<Postgres>) -> Result<(), AppError
         and n.lang_code is null
         and n.name_type <> 10
         and c.country_code = 'JP'
-        and (name_to_compare like '%kenkyujo%' 
-        or name_to_compare like '%tankyu%'
-        or name_to_compare like '%kenkyusho%'
-        or name_to_compare like '%kenkyuu%'
-        or name_to_compare like '%kokusai%');"#;
+        and (name_to_match like '%kenkyujo%' 
+        or name_to_match like '%tankyu%'
+        or name_to_match like '%kenkyusho%'
+        or name_to_match like '%kenkyuu%'
+        or name_to_match like '%kokusai%');"#;
         
         // research facility
         // research institute
@@ -248,18 +251,18 @@ pub async fn update_japanese_names(pool: &Pool<Postgres>) -> Result<(), AppError
         and n.lang_code is null
         and n.name_type <> 10
         and c.country_code = 'JP'
-        and (name_to_compare like '%nihon%' 
-        or name_to_compare like '%kinzoku%'  
-        or name_to_compare like '%kenkyū%'
-        or name_to_compare like '%kokudo%'
-        or name_to_compare like '%jitsugyo%'
-        or name_to_compare like '%fukusei%' 
-        or name_to_compare like '%shiryokan%'  
-        or name_to_compare like '%gurūpu%'
-        or name_to_compare like '%shimonosekishiritsuchuobyoin%'
-        or name_to_compare like '%kenkyuukikou%'
-        or name_to_compare like '%kōtōsenmongakkō%'
-        or name_to_compare like '%toyokawashiminbyoin%');"#;
+        and (name_to_match like '%nihon%' 
+        or name_to_match like '%kinzoku%'  
+        or name_to_match like '%kenkyū%'
+        or name_to_match like '%kokudo%'
+        or name_to_match like '%jitsugyo%'
+        or name_to_match like '%fukusei%' 
+        or name_to_match like '%shiryokan%'  
+        or name_to_match like '%gurūpu%'
+        or name_to_match like '%shimonosekishiritsuchuobyoin%'
+        or name_to_match like '%kenkyuukikou%'
+        or name_to_match like '%kōtōsenmongakkō%'
+        or name_to_match like '%toyokawashiminbyoin%');"#;
 
         // Japan
         // metal
@@ -295,29 +298,17 @@ pub async fn update_chinese_names(pool: &Pool<Postgres>) -> Result<(), AppError>
                 where n.id = c.id
                 and n.lang_code is null
                 and n.name_type <> 10
-                and c.country_code in ('CN', 'TW')
-                and n.script_code <> 'Latn'"#;
-
-    let res = sqlx::raw_sql(sql).execute(pool)
-        .await.map_err(|e| AppError::SqlxError(e, sql.to_string()))?;
-    total_records_affected += res.rows_affected();
-
-    let sql = r#"update orgs.ror_names n
-                set lang_code = 'zh'
-                from orgs.ror_countries c
-                where n.id = c.id
-                and n.lang_code is null
-                and n.name_type <> 10
-                and c.country_code in ('CN', 'TW')
-                and (name_to_compare like '%dàxué%'
-                or name_to_compare like '%daxue%'
-                or name_to_compare like '%dàxúe%'
-                or name_to_compare like '%zhōngyī%'
-                or name_to_compare like '%xuéyuàn%'
-                or name_to_compare like '%yīyuàn%'
-                or name_to_compare like '%jīgòu%'
-                or name_to_compare like '%yánjiū%'
-                or name_to_compare like '%mínguó%');"#;
+                and c.country_code in ('CN', 'TW', 'HK')
+                and (name_to_match like '%dàxué%'
+                or name_to_match like '%daxue%'
+                or name_to_match like '%dàxúe%'
+                or name_to_match like '%zhōngyī%'
+                or name_to_match like '%xuéyuàn%'
+                or name_to_match like '%yīyuàn%'
+                or name_to_match like '%jīgòu%'
+                or name_to_match like '%yánjiū%'
+                or name_to_match like '%mínguó%'
+                or name_to_match like '%yínháng%');"#;
                  
 
         // dàxué, dàxúe, daxue   University
@@ -326,7 +317,42 @@ pub async fn update_chinese_names(pool: &Pool<Postgres>) -> Result<(), AppError>
         // yīyuàn      hospital
         // jīgòu       Mechanism (body - agency)
         // yánjiū      Study (Research)
-        // mínguó       ??
+        // mínguó      Republic
+        // yínháng     Bank
+
+    let res = sqlx::raw_sql(sql).execute(pool)
+        .await.map_err(|e| AppError::SqlxError(e, sql.to_string()))?;
+    total_records_affected += res.rows_affected();
+
+
+    let sql = r#"update orgs.ror_names n
+                set lang_code = 'zh'
+                from orgs.ror_countries c
+                where n.id = c.id
+                and n.lang_code is null
+                and n.name_type <> 10
+                and c.country_code in ('CN', 'TW', 'HK')
+                and (name_to_match like '%yīyún%'
+                or name_to_match like '%yánjiùyuàn%'
+                or name_to_match like '%ybówùguǎn%'
+                or name_to_match like '%xuéxiào%'
+                or name_to_match like '%shénxué%'
+                or name_to_match like '%gōngyè%'
+                or name_to_match like '%zhèngfǔ%'
+                or name_to_match like '%guójiā%' 
+                or name_to_match like '%shīfàn%' 
+                );"#;
+                 
+
+        // yīyún      hospital
+        // yánjiùyuàn researcher
+        // bówùguǎn   museum
+        // xuéxiào    school
+        // shénxué    theology
+        // gōngyè     industry
+        // zhèngfǔ    government
+        // guójiā     state, country
+        // shīfàn     school
 
     let res = sqlx::raw_sql(sql).execute(pool)
         .await.map_err(|e| AppError::SqlxError(e, sql.to_string()))?;
@@ -366,11 +392,11 @@ pub async fn update_french_names(pool: &Pool<Postgres>) -> Result<(), AppError> 
             or name like 'US%');"#;
 
 
-        // CH    Centre Hospitalier
-        // CHU   Centre Hospitalier Universitaire
+        // CH    centre hospitalier
+        // CHU   centre hospitalier universitaire
         // CIC   centres d’investigation clinique
-        // EA    ?
-        // ERL   ?
+        // EA    équipe d’accueil
+        // ERL   ? équipe d’accueil laboratoire
         // U 9999  unité ...
         // UAR   unités d'appui et de recherche
         // UMR   unité mixte de recherche
@@ -379,7 +405,7 @@ pub async fn update_french_names(pool: &Pool<Postgres>) -> Result<(), AppError> 
         // UMS   unité mixte de service
         // UR    unité de recherche
         // URP   unité de recherche ?
-        // US    unité ?
+        // US    ? unité de service
 
     let res = sqlx::raw_sql(sql).execute(pool)
         .await.map_err(|e| AppError::SqlxError(e, sql.to_string()))?;
@@ -414,13 +440,16 @@ pub async fn update_indian_names(pool: &Pool<Postgres>) -> Result<(), AppError> 
             or name like 'NIT%'
             or name like 'RDC%'
             or name like 'REC%'
-            or name like 'SKUAST%');"#;
+            or name like 'SKUAST%'
+            or name like 'JNT%'
+            or name_to_match like '%centre%'
+);"#;
 
        // 'AIIMS%'  All India Institute of Medical Sciences
        // 'GCE%'    Government College of Engineering
        // 'GMC%'    Government Medical College
-       //'IIIT%'   International Institute of Information Technology
-       //         Indian Institute of Information Technology Design & Manufacturing
+       // 'IIIT%'   International Institute of Information Technology
+       //           Indian Institute of Information Technology Design & Manufacturing
        // 'IIM %'   Indian Institute of Management 
        // 'IISER%'  Indian Institute of Science Education and Research
        // 'IIT %'   Indian Institute of Technology
@@ -429,6 +458,7 @@ pub async fn update_indian_names(pool: &Pool<Postgres>) -> Result<(), AppError> 
        // 'RDC %'   Dental College & Hospital
        // 'REC %'   Regional / Rajkiya Engineering College 
        // 'SKUAST%' Sher-e-Kashmir University of Agricultural Sciences and Technology
+       // 'JNT%'    Jawaharlal Nehru Technological University
 
     let res = sqlx::raw_sql(sql).execute(pool)
        .await.map_err(|e| AppError::SqlxError(e, sql.to_string()))?;
@@ -444,19 +474,23 @@ pub async fn update_indian_names(pool: &Pool<Postgres>) -> Result<(), AppError> 
     and c.country_code = 'IN'
     and 
     (name like 'KVK %'
-    or name_to_compare like 'GCE%'
-    or name_to_compare like '% vigyan%'
-    or name_to_compare like '% vishwavidyalaya%'
-    or name_to_compare like '% sanstha%'
-    or name_to_compare like '% sansthā%'
-    or name_to_compare like '% vidyālaya%');"#;
+    or name_to_match like 'GCE%'
+    or name_to_match like '% vigyan%'
+    or name_to_match like '% vishwavidyalaya%'
+    or name_to_match like '% sanstha%'
+    or name_to_match like '% sansthā%'
+    or name_to_match like '% vidyālaya%'
+    or name_to_match like '%krishi%'
+    or name_to_match like '%samsthana%');"#;
 
-       // 'KVK %'    (Krishi Vigyan Kendra)  Farm Science Center
-       // '% vigyan%'           science
-       // '% vishwavidyalaya%'  university school
-       // '% sanstha%'          organization
-       // '% sansthā%'
-       // '% vidyālaya%'        school
+       // KVK     Krishi Vigyan Kendra  Farm Science Center
+       // vigyan           science
+       // vishwavidyalaya  university school
+       // sanstha          organization
+       // sansthā
+       // vidyālaya        school
+       // krishi           agriculture
+       // samsthana        institution
        
     let res = sqlx::raw_sql(sql).execute(pool)
         .await.map_err(|e| AppError::SqlxError(e, sql.to_string()))?;
@@ -479,7 +513,7 @@ pub async fn update_iranian_names(pool: &Pool<Postgres>) -> Result<(), AppError>
             and n.lang_code is null
             and n.name_type <> 10
             and c.country_code = 'IR'
-            and name_to_compare like '%dāneshgāh%';"#;
+            and name_to_match like '%dāneshgāh%';"#;
 
         // dāneshgāh    university
 
@@ -496,6 +530,7 @@ pub async fn update_iranian_names(pool: &Pool<Postgres>) -> Result<(), AppError>
 pub async fn update_russian_names(pool: &Pool<Postgres>) -> Result<(), AppError> {
 
     let mut total_records_affected = 0;
+    
 
     let sql = r#"update orgs.ror_names n
             set lang_code = 'ru'
@@ -504,24 +539,11 @@ pub async fn update_russian_names(pool: &Pool<Postgres>) -> Result<(), AppError>
             and n.lang_code is null
             and n.name_type <> 10
             and c.country_code = 'RU'
-            and n.script_code <> 'Latn';"#;
-       
-    let res = sqlx::raw_sql(sql).execute(pool)
-        .await.map_err(|e| AppError::SqlxError(e, sql.to_string()))?;
-    total_records_affected += res.rows_affected();
-
-    let sql = r#"update orgs.ror_names n
-            set lang_code = 'ru'
-            from orgs.ror_countries c
-            where n.id = c.id
-            and n.lang_code is null
-            and n.name_type <> 10
-            and c.country_code = 'RU'
-            and (name_to_compare like '%institut %'
-            or name_to_compare like '%universitet%'
-            or name_to_compare like '%akademiya%'
-            or name_to_compare like '%akadémiya%'
-            or name_to_compare like '%oblastnoy%'
+            and (name_to_match like '%institut %'
+            or name_to_match like '%universitet%'
+            or name_to_match like '%akademiya%'
+            or name_to_match like '%akadémiya%'
+            or name_to_match like '%oblastnoy%'
             or name like 'JSC %');"#;
 
             // JSC  Scientific research institute
@@ -538,12 +560,12 @@ pub async fn update_russian_names(pool: &Pool<Postgres>) -> Result<(), AppError>
             and n.lang_code is null
             and n.name_type <> 10
             and c.country_code = 'RU'
-            and (name_to_compare like '%federalnyy%'
-            or name_to_compare like '%patologii%'
-            or name_to_compare like '%khirurgii%'
-            or name_to_compare like '%shkola%'
-            or name_to_compare like '%kombinat%'
-            or name_to_compare like '%tsentr%');"#;
+            and (name_to_match like '%federalnyy%'
+            or name_to_match like '%patologii%'
+            or name_to_match like '%khirurgii%'
+            or name_to_match like '%shkola%'
+            or name_to_match like '%kombinat%'
+            or name_to_match like '%tsentr%');"#;
 
      let res = sqlx::raw_sql(sql).execute(pool)
             .await.map_err(|e| AppError::SqlxError(e, sql.to_string()))?;
@@ -558,7 +580,7 @@ pub async fn update_russian_names(pool: &Pool<Postgres>) -> Result<(), AppError>
 pub async fn update_ukrainian_names(pool: &Pool<Postgres>) -> Result<(), AppError> {
 
     let mut total_records_affected = 0;
-
+   
     let sql = r#"update orgs.ror_names n
             set lang_code = 'uk'
             from orgs.ror_countries c
@@ -566,25 +588,11 @@ pub async fn update_ukrainian_names(pool: &Pool<Postgres>) -> Result<(), AppErro
             and n.lang_code is null
             and n.name_type <> 10
             and c.country_code = 'UA'
-            and n.script_code <> 'Latn';"#;          
-                  
-
-    let res = sqlx::raw_sql(sql).execute(pool)
-        .await.map_err(|e| AppError::SqlxError(e, sql.to_string()))?;
-    total_records_affected += res.rows_affected();
-
-    let sql = r#"update orgs.ror_names n
-            set lang_code = 'uk'
-            from orgs.ror_countries c
-            where n.id = c.id
-            and n.lang_code is null
-            and n.name_type <> 10
-            and c.country_code = 'UA'
-            and (name_to_compare like '%universitét %'
-            or name_to_compare like '%universytet%'
-            or name_to_compare like '%ukrainsky%'
-            or name_to_compare like '%ukrayinska%'
-            or name_to_compare like '%ukrayiny%');"#;
+            and (name_to_match like '%universitét %'
+            or name_to_match like '%universytet%'
+            or name_to_match like '%ukrainsky%'
+            or name_to_match like '%ukrayinska%'
+            or name_to_match like '%ukrayiny%');"#;
  
     let res = sqlx::raw_sql(sql).execute(pool)
             .await.map_err(|e| AppError::SqlxError(e, sql.to_string()))?;
@@ -594,6 +602,7 @@ pub async fn update_ukrainian_names(pool: &Pool<Postgres>) -> Result<(), AppErro
     
     Ok(())
 }
+
 
 pub async fn update_norwegian_names(pool: &Pool<Postgres>) -> Result<(), AppError> {
 
@@ -606,16 +615,16 @@ pub async fn update_norwegian_names(pool: &Pool<Postgres>) -> Result<(), AppErro
             and n.lang_code is null
             and n.name_type <> 10
             and c.country_code = 'NO'
-            and (name_to_compare like '%sykehus%' 
-            or name_to_compare like '%skole%' 
-            or name_to_compare like '%skule%' 
-            or name_to_compare like '%universitet%' 
-            or name_to_compare like '% i %'
-            or name_to_compare like '%ø%'
-            or name_to_compare like '%direktoratet%'
-            or name_to_compare like '%registeret%'
-            or name_to_compare like '%kommune%'
-            or name_to_compare like '%instituut%');"#;
+            and (name_to_match like '%sykehus%' 
+            or name_to_match like '%skole%' 
+            or name_to_match like '%skule%' 
+            or name_to_match like '%universitet%' 
+            or name_to_match like '% i %'
+            or name_to_match like '%ø%'
+            or name_to_match like '%direktoratet%'
+            or name_to_match like '%registeret%'
+            or name_to_match like '%kommune%'
+            or name_to_match like '%instituut%');"#;
  
     let res = sqlx::raw_sql(sql).execute(pool)
             .await.map_err(|e| AppError::SqlxError(e, sql.to_string()))?;
@@ -638,9 +647,9 @@ pub async fn update_serbian_names(pool: &Pool<Postgres>) -> Result<(), AppError>
             and n.lang_code is null
             and n.name_type <> 10
             and c.country_code = 'RS'
-            and (name_to_compare like '%institut%' 
-            or name_to_compare like '%univerzitet%' 
-            or name_to_compare like '%zvezdara%');"#;
+            and (name_to_match like '%institut%' 
+            or name_to_match like '%univerzitet%' 
+            or name_to_match like '%zvezdara%');"#;
  
     let res = sqlx::raw_sql(sql).execute(pool)
             .await.map_err(|e| AppError::SqlxError(e, sql.to_string()))?;
@@ -650,6 +659,7 @@ pub async fn update_serbian_names(pool: &Pool<Postgres>) -> Result<(), AppError>
     
     Ok(())
 }
+
 
 pub async fn update_bulgarian_names(pool: &Pool<Postgres>) -> Result<(), AppError> {
 
@@ -662,13 +672,13 @@ pub async fn update_bulgarian_names(pool: &Pool<Postgres>) -> Result<(), AppErro
             and n.lang_code is null
             and n.name_type <> 10
             and c.country_code = 'BG'
-            and (name_to_compare like '%institut%' 
-            or name_to_compare like '%akademiya%' 
-            or name_to_compare like '%universitet%'
-            or name_to_compare like '%ministerstvo%' 
-            or name_to_compare like '%obshtina%'
-            or name_to_compare like '%muzei%'
-            or name_to_compare like '%medicinska%');"#;
+            and (name_to_match like '%institut%' 
+            or name_to_match like '%akademiya%' 
+            or name_to_match like '%universitet%'
+            or name_to_match like '%ministerstvo%' 
+            or name_to_match like '%obshtina%'
+            or name_to_match like '%muzei%'
+            or name_to_match like '%medicinska%');"#;
  
     let res = sqlx::raw_sql(sql).execute(pool)
             .await.map_err(|e| AppError::SqlxError(e, sql.to_string()))?;
@@ -680,3 +690,127 @@ pub async fn update_bulgarian_names(pool: &Pool<Postgres>) -> Result<(), AppErro
 }
 
 
+pub async fn update_israeli_names(pool: &Pool<Postgres>) -> Result<(), AppError> {
+
+    let mut total_records_affected = 0;
+
+    let sql = r#"update orgs.ror_names n
+            set lang_code = 'he'
+            from orgs.ror_countries c
+            where n.id = c.id
+            and n.lang_code is null
+            and n.name_type <> 10
+            and c.country_code = 'IL'
+            and (name_to_match like '%ha-universita%' 
+            or name_to_match like '%hauniversita%' 
+            or name_to_match like '%machon %'
+            or name_to_match like '%merkaz %' 
+            or name_to_match like '%misrad %'
+            or name_to_match like '%misgav %'
+            or name_to_match like '%mikhlelet%'
+            or name_to_match like '%miklelet%');"#;
+
+            // machon   institution or foundation
+            // merkaz   centre
+            // misrad   office
+            // misgav   refuge (hospital here)
+            // mikhlelet college
+            // miklelet  (law) school
+ 
+    let res = sqlx::raw_sql(sql).execute(pool)
+            .await.map_err(|e| AppError::SqlxError(e, sql.to_string()))?;
+    total_records_affected += res.rows_affected();
+
+    info!("{} language codes added to israeli records", total_records_affected);
+    
+    Ok(())
+}
+
+
+pub async fn update_korean_names(pool: &Pool<Postgres>) -> Result<(), AppError> {
+
+    let mut total_records_affected = 0;
+
+    let sql = r#"update orgs.ror_names n
+            set lang_code = 'ko'
+            from orgs.ror_countries c
+            where n.id = c.id
+            and n.lang_code is null
+            and n.name_type <> 10
+            and c.country_code = 'KR'
+            and (name_to_match like '%daehak%' 
+            or name_to_match like '%hakkyo%'
+            or name_to_match like '%taehak%');"#;
+
+            // daehak  
+ 
+    let res = sqlx::raw_sql(sql).execute(pool)
+            .await.map_err(|e| AppError::SqlxError(e, sql.to_string()))?;
+    total_records_affected += res.rows_affected();
+
+    info!("{} language codes added to korean records", total_records_affected);
+    
+    Ok(())
+}
+
+
+pub async fn update_greek_names(pool: &Pool<Postgres>) -> Result<(), AppError> {
+
+    let mut total_records_affected = 0;
+
+    let sql = r#"update orgs.ror_names n
+            set lang_code = 'en'
+            from orgs.ror_countries c
+            where n.id = c.id
+            and n.lang_code is null
+            and n.name_type <> 10
+            and c.country_code = 'GR'
+            and (name_to_match like 'tei %');"#;
+
+            // tei     Technological Educational Institute
+ 
+    let res = sqlx::raw_sql(sql).execute(pool)
+            .await.map_err(|e| AppError::SqlxError(e, sql.to_string()))?;
+    total_records_affected += res.rows_affected();
+
+    let sql = r#"update orgs.ror_names n
+            set lang_code = 'el'
+            from orgs.ror_countries c
+            where n.id = c.id
+            and n.lang_code is null
+            and n.name_type <> 10
+            and c.country_code = 'GR'
+            and (name_to_match like '%panepistimio%'
+            or name_to_match like '%panepistimiako%'
+            or name_to_match like '%ellinikon%'
+            or name_to_match like '%institouto%'
+            );"#;
+
+            // panepistimio    university
+            // panepistimiako  university
+            // ellinikon       greek
+ 
+    let res = sqlx::raw_sql(sql).execute(pool)
+            .await.map_err(|e| AppError::SqlxError(e, sql.to_string()))?;
+    total_records_affected += res.rows_affected();
+
+
+    info!("{} language codes added to greek records", total_records_affected);
+    
+    Ok(())
+}
+
+
+pub async fn update_lang_code_source(srce: &str, pool: &Pool<Postgres>) -> Result<(), AppError> {
+
+    let sql = format!(r#"update orgs.ror_names
+            set lang_source = '{}'
+            where lang_source is null
+            and lang_code is not null;"#, srce);
+ 
+    let res = sqlx::raw_sql(&sql).execute(pool)
+            .await.map_err(|e| AppError::SqlxError(e, sql))?;
+        info!("{} records updated with '{}' as language source", res.rows_affected(), srce);
+
+    Ok(())
+}

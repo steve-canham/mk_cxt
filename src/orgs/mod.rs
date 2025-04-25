@@ -1,4 +1,5 @@
 mod ror;
+mod names;
 mod langs;
 
 
@@ -10,7 +11,7 @@ pub async fn load_ror_data(pool: &Pool<Postgres>) -> Result<(), AppError> {
 
     // These simply load the ROR data into matching tables in the orgs schema
     // of the cxt DB. The ror names are loaded in two forms, the original
-    // and a 'name_to_compare' form, which is lower-cased, shorn of full stops, 
+    // and a 'name_to_match' form, which is lower-cased, shorn of full stops, 
     // commas and brackets, and has apostrophes replaced by single right quotes.
 
     ror::load_ror_orgs(pool).await?;
@@ -25,17 +26,21 @@ pub async fn load_ror_data(pool: &Pool<Postgres>) -> Result<(), AppError> {
 
 pub async fn process_ror_data(pool: &Pool<Postgres>) -> Result<(), AppError> {
     
+    names::remove_no_width_chars(pool).await?;
+    names::prepare_names_to_match(pool).await?;
+
     // Look at orgs names without a language code
     // If the org is a commercial company change the lang code to 'cm' (?) or just leave blank
     // If the former easier to see the gaps, though 'cm' needs to be added to the lang codes
     // in the language_codes lkup table.
 
-    ror::add_cm_lang_code_to_comm_orgs(pool).await?;
-
+    langs::add_cm_lang_code_to_comm_orgs(pool).await?;
+    //langs::update_lang_code_source("cm_brand", pool).await?;   // may need to overwrite in some cases
+    
     // Add languages if possible, using location of org and key words or word parts
     // Do language of acronyms where all other names have the same language
     // See what are left
-
+  
     langs::update_english_names(pool).await?;
     langs::update_japanese_names(pool).await?;
     langs::update_chinese_names(pool).await?;
@@ -47,6 +52,11 @@ pub async fn process_ror_data(pool: &Pool<Postgres>) -> Result<(), AppError> {
     langs::update_norwegian_names(pool).await?;
     langs::update_serbian_names(pool).await?;
     langs::update_bulgarian_names(pool).await?;
+    langs::update_israeli_names(pool).await?;
+    langs::update_korean_names(pool).await?;
+    langs::update_greek_names(pool).await?;
+
+    langs::update_lang_code_source("lex_auto", pool).await?;
 
         // israel
         // greece ?
@@ -54,29 +64,21 @@ pub async fn process_ror_data(pool: &Pool<Postgres>) -> Result<(), AppError> {
         // taiwan +
         // india +
         // russia +
- 
+        
+    // Do acronym language codes....
+
     // There are about 1600 names that begin with 'The '
-    // These are often prtesented in source material without the 'The '.
+    // These are often presented in source material without the 'The '.
     // 400 of them already include a name variant without the 'The., but
     // this call results in the remaining 1200+ also having a 'the-less'
     // version of the name added.
 
-    ror::add_names_without_thes(pool).await?;
-    
-    
-
-
-    // Do acronym language codes....
-
+    names::add_names_without_thes(pool).await?;
 
     // Need to modify the company data to make a single entry from multiple national 
     // subsidiaries - get companies in a parent child relationship - 
     // remove the children but possibly keep a name if it is different as an alt name. 
     // Keep the parent entry as 'the' company ROR entry.
-
-
-    
-
 
     Ok(())
 }

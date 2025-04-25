@@ -119,7 +119,7 @@ pub async fn set_up_foreign_tables(pool: &PgPool, data_type: &str) -> Result<(),
     };
 
     let schema = match data_type {
-        "locs" => "geo", 
+        "locs" => "src", 
         "orgs" => "src", 
         "umls" => "icd", 
         "pubs" => "pub", 
