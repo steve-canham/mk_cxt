@@ -1,7 +1,7 @@
 mod ror;
 mod names;
 mod langs;
-
+mod acros;
 
 use crate::err::AppError;
 use sqlx::{Pool, Postgres};
@@ -27,6 +27,7 @@ pub async fn load_ror_data(pool: &Pool<Postgres>) -> Result<(), AppError> {
 pub async fn process_ror_data(pool: &Pool<Postgres>) -> Result<(), AppError> {
     
     names::remove_no_width_chars(pool).await?;
+    names::remove_peoples_space_in_names(pool).await?;
     names::prepare_names_to_match(pool).await?;
 
     // Look at orgs names without a language code
@@ -35,7 +36,6 @@ pub async fn process_ror_data(pool: &Pool<Postgres>) -> Result<(), AppError> {
     // in the language_codes lkup table.
 
     langs::add_cm_lang_code_to_comm_orgs(pool).await?;
-    //langs::update_lang_code_source("cm_brand", pool).await?;   // may need to overwrite in some cases
     
     // Add languages if possible, using location of org and key words or word parts
     // Do language of acronyms where all other names have the same language
@@ -66,6 +66,28 @@ pub async fn process_ror_data(pool: &Pool<Postgres>) -> Result<(), AppError> {
         // russia +
         
     // Do acronym language codes....
+
+    langs::obtain_manual_coding_list(pool).await?;
+    langs::apply_manual_coding_list(pool).await?;
+
+    langs::update_lang_code_source("manual", pool).await?;
+
+
+    // Need to consider acronyms (type = 10)
+    // get all the acronyms into a table with the id, acronym
+    // ???, and space for a matching name and language code
+
+    // For each id where there is an acronym, get each name, name_to_match (?), language code, 
+    // name minus 'the ', name minus ' of ', 
+    // string with first letter of each word (minus 'the '), 
+    // remove entries with just one word / initial letter
+    // update table above with first letter of each word minus ' of ', where the name contains ' of '
+
+    // match the atual acronyms with the derived acronyms, and create a table with the result.
+    // Add rto the table additional ercords where the acronym matches the 'of-less' records.
+    // (might be some similar additions, e.g. removing ' and ')
+    
+
 
     // There are about 1600 names that begin with 'The '
     // These are often presented in source material without the 'The '.

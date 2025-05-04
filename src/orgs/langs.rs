@@ -31,6 +31,7 @@ pub async fn update_english_names(pool: &Pool<Postgres>) -> Result<(), AppError>
         or name_to_match like '%college%'
         or name_to_match like '%polytechnic%'
         or name_to_match like '%museum%'
+        or name_to_match like '%institute%'
         or name_to_match like '%center%'
         or name_to_match like '%clinic%'
         or name_to_match like '%library%'
@@ -39,7 +40,6 @@ pub async fn update_english_names(pool: &Pool<Postgres>) -> Result<(), AppError>
     let res = sqlx::raw_sql(sql).execute(pool)
         .await.map_err(|e| AppError::SqlxError(e, sql.to_string()))?;
     total_records_affected += res.rows_affected();
-
 
     let sql = r#"update orgs.ror_names n
         set lang_code = 'en'
@@ -53,13 +53,28 @@ pub async fn update_english_names(pool: &Pool<Postgres>) -> Result<(), AppError>
         or name_to_match like '%academy%'
         or name_to_match like '% zoo%'
         or name_to_match like '% park%'
-         or name_to_match like '% garden%'
+        or name_to_match like '% garden%'
         or name_to_match like '%wikimedia%');"#;
 
     let res = sqlx::raw_sql(sql).execute(pool)
         .await.map_err(|e| AppError::SqlxError(e, sql.to_string()))?;
     total_records_affected += res.rows_affected();
 
+
+    let sql = r#"update orgs.ror_names n
+        set lang_code = 'en'
+        where n.lang_code is null
+        and n.name_type <> 10
+        and (name_to_match like '%forum%'
+        or name_to_match like '%municipal%'
+        or name_to_match like '%medical%'
+        or name_to_match like '%health%'
+        or name_to_match like '%sanitorium%'
+        or name_to_match like '%genebank%');"#;
+
+    let res = sqlx::raw_sql(sql).execute(pool)
+        .await.map_err(|e| AppError::SqlxError(e, sql.to_string()))?;
+    total_records_affected += res.rows_affected();
 
     let sql = r#"update orgs.ror_names n
         set lang_code = 'en'
@@ -164,7 +179,9 @@ pub async fn update_japanese_names(pool: &Pool<Postgres>) -> Result<(), AppError
             (name_to_match like '%kenritsu%' 
             or name_to_match like '%dokuritsu%'  
             or name_to_match like '% kikō%'
-            or name_to_match like '% gakkō%'
+            or name_to_match like '%gakkō%'
+            or name_to_match like '%gakko%'
+            or name_to_match like '%gakkou%'
             or name_to_match like '%kaihatsu%'
             or name_to_match like '%-shō%'
             or name_to_match like '%bunka senta%' 
@@ -172,15 +189,12 @@ pub async fn update_japanese_names(pool: &Pool<Postgres>) -> Result<(), AppError
             or name_to_match like '%gakuen%'
             or name_to_match like '%kagaku-kan%'
             or name_to_match like '%bungaku-kan%'
-            or name_to_match like '%-chō%'
-            or name_to_match like '%kotogakko%'
-            or name_to_match like '%mongakkō%'
-            or name_to_match like '%mongakkou%');"#;
+            or name_to_match like '%-chō%');"#;
 
             // prefectural
             // independent
             // organization
-            // school
+            // school (3)
             // development
             // -prize
             // cultural center
@@ -189,8 +203,6 @@ pub async fn update_japanese_names(pool: &Pool<Postgres>) -> Result<(), AppError
             // science building
             // literature building
             // district
-            // senior high school
-            // specialized school
             // specialized school
 
     let res = sqlx::raw_sql(sql).execute(pool)
@@ -207,13 +219,14 @@ pub async fn update_japanese_names(pool: &Pool<Postgres>) -> Result<(), AppError
             and (name_to_match like '%chuobyoin%'
             or name_to_match like '%shiritsu%'  
             or name_to_match like '%kenkyūjo%'
+            or name_to_match like '%kenkyujo%'
+            or name_to_match like '%kenkyūsho%'
             or name_to_match like '%kenkei%'
-            or name_to_match like '%kyōdō%'
-            or name_to_match like '%kenkyūsho%');"#;
+            or name_to_match like '%kyōdō%');"#;
             
             // medical center
             // municipal
-            // research institute
+            // research institute (3)
             // survey
             // collaboration
             
@@ -228,17 +241,22 @@ pub async fn update_japanese_names(pool: &Pool<Postgres>) -> Result<(), AppError
         and n.lang_code is null
         and n.name_type <> 10
         and c.country_code = 'JP'
-        and (name_to_match like '%kenkyujo%' 
-        or name_to_match like '%tankyu%'
+        and (name_to_match like '%tankyu%'
         or name_to_match like '%kenkyusho%'
         or name_to_match like '%kenkyuu%'
-        or name_to_match like '%kokusai%');"#;
+        or name_to_match like '%kokusai%'
+        or name_to_match like '%hakubutsukan%'
+        or name_to_match like '%toshoken%'
+        or name_to_match like '%byoin%'
+        or name_to_match like '%byōin%');"#;
         
         // research facility
-        // research institute
         // research laboratory
         // research
         // international
+        // museums
+        // libraries
+        // hospitals (2)
         
     let res = sqlx::raw_sql(sql).execute(pool)
         .await.map_err(|e| AppError::SqlxError(e, sql.to_string()))?;
@@ -259,10 +277,9 @@ pub async fn update_japanese_names(pool: &Pool<Postgres>) -> Result<(), AppError
         or name_to_match like '%fukusei%' 
         or name_to_match like '%shiryokan%'  
         or name_to_match like '%gurūpu%'
-        or name_to_match like '%shimonosekishiritsuchuobyoin%'
+        or name_to_match like 'shiritsuchuobyoin%'
         or name_to_match like '%kenkyuukikou%'
-        or name_to_match like '%kōtōsenmongakkō%'
-        or name_to_match like '%toyokawashiminbyoin%');"#;
+        or name_to_match like '%shiminbyoin%');"#;
 
         // Japan
         // metal
@@ -272,10 +289,10 @@ pub async fn update_japanese_names(pool: &Pool<Postgres>) -> Result<(), AppError
         // integrated
         // information center
         // group
-        // Shimonoseki municipal hospital
+        // municipal hospital
         // research organization
         // high school for advanced study
-        // toyokawa municipal hospital
+        // municipal hospital
 
     let res = sqlx::raw_sql(sql).execute(pool)
         .await.map_err(|e| AppError::SqlxError(e, sql.to_string()))?;
@@ -374,13 +391,15 @@ pub async fn update_french_names(pool: &Pool<Postgres>) -> Result<(), AppError> 
             where n.id = c.id
             and n.lang_code is null
             and n.name_type <> 10
-            and c.country_code = 'FR'
+            and c.country_code in ('FR', 'PF')
             and 
-            (name like 'CH %' 
+            (name ilike 'Inserm %'
+            or name like 'CH %' 
             or name like 'CHU %'
             or name like 'CIC %'
-            or name like 'EA %' 
+            or name like 'EA%' 
             or name like 'ERL %' 
+            or name like 'GDR%' 
             or name like 'U %'
             or name like 'UAR%'
             or name like 'UMR%'
@@ -391,12 +410,13 @@ pub async fn update_french_names(pool: &Pool<Postgres>) -> Result<(), AppError> 
             or name like 'URP %'
             or name like 'US%');"#;
 
-
         // CH    centre hospitalier
         // CHU   centre hospitalier universitaire
         // CIC   centres d’investigation clinique
         // EA    équipe d’accueil
         // ERL   ? équipe d’accueil laboratoire
+        // GDR   groupement de recherche
+
         // U 9999  unité ...
         // UAR   unités d'appui et de recherche
         // UMR   unité mixte de recherche
@@ -797,6 +817,54 @@ pub async fn update_greek_names(pool: &Pool<Postgres>) -> Result<(), AppError> {
 
     info!("{} language codes added to greek records", total_records_affected);
     
+    Ok(())
+}
+
+
+
+pub async fn obtain_manual_coding_list(pool: &Pool<Postgres>) -> Result<(), AppError> {
+
+    let sql  = r#"drop table if exists orgs.manual_codes;
+                CREATE TABLE orgs.manual_codes (
+                    id varchar NOT NULL,
+                    name varchar NULL,
+                    name_to_match varchar NULL,
+                    name_type varchar NULL,
+                    lang_code varchar NULL,
+                    notes varchar NULL
+                );
+                CREATE INDEX manual_codes_id ON orgs.manual_codes USING btree (id);
+                CREATE INDEX manual_codes_name ON orgs.manual_codes USING btree (name_to_match); "#;
+
+    sqlx::raw_sql(sql).execute(pool).await
+    .map_err(|e| AppError::SqlxError(e, sql.to_string()))?;
+
+    let sql  = r#"copy orgs.manual_codes FROM 'E:\Resources - Data\ROR\manual_coding.csv' DELIMITER ',' CSV HEADER; "#;
+
+    let res = sqlx::raw_sql(sql).execute(pool).await
+    .map_err(|e| AppError::SqlxError(e, sql.to_string()))?;
+
+    info!("{} manual coding records imported from file", res.rows_affected());
+
+    Ok(())
+}
+
+
+pub async fn apply_manual_coding_list(pool: &Pool<Postgres>) -> Result<(), AppError> {
+
+    let sql  = r#"update orgs.ror_names n
+                set lang_code = m.lang_code
+                from orgs.manual_codes m
+                where n.id = m.id
+                and n.name_to_match = m.name_to_match
+                and n.lang_code is null
+                and n.name_type <> 10; "#;
+
+    let res = sqlx::query(sql).execute(pool).await
+    .map_err(|e| AppError::SqlxError(e, sql.to_string()))?;
+
+    info!("{} language codes applied from manual coding data", res.rows_affected());
+
     Ok(())
 }
 
