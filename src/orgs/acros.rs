@@ -17,10 +17,10 @@ and lang_source <> 'ror'
 and lang_source <> 'script_auto'
 
 
+
 ----------------------------------------------------
 -- get current acronyms
 ----------------------------------------------------
-
 
 drop table if exists orgs.ror_acronyms;
 create table orgs.ror_acronyms (
@@ -30,19 +30,22 @@ create table orgs.ror_acronyms (
    , der_acro_comp varchar
    , lang_code varchar
    , source_name varchar
+   , country_code varchar
 );
 create index ror_acrs_id on orgs.ror_acronyms(id);
 create index ror_acrs_ntm on orgs.ror_acronyms(name_to_match);
 
 
 
-insert into orgs.ror_acronyms (id, name, name_to_match, der_acro_comp)
-select id, name, name_to_match, name_to_match
-from orgs.ror_names
-where name_type = 10
-and lang_code is null;
+insert into orgs.ror_acronyms (id, name, name_to_match, der_acro_comp, country_code)
+select n.id, n.name, n.name_to_match, n.name_to_match, ro.country_code
+from orgs.ror_names n
+inner join orgs.ror_orgs ro 
+on n.id = ro.id
+where n.name_type = 10
+and n.lang_code is null;
 
--- 43407
+--43048
 
 -- remove spaces and dashes to make matching easier
 
@@ -50,12 +53,13 @@ update orgs.ror_acronyms
 set der_acro_comp = replace(der_acro_comp, '-', '')
 where der_acro_comp like '%-%';
 
+--795
 
 update orgs.ror_acronyms
 set der_acro_comp = replace(der_acro_comp, ' ', '')
 where der_acro_comp like '% %';
 
-
+--1430
 
 
 
@@ -63,16 +67,17 @@ where der_acro_comp like '% %';
 -- get derived acronyms
 ----------------------------------------------------
 
-
 -- about 165 duplicates of names_to_match in orgs.ror_names
 -- therefore select distinct to get an acro base table
 
 drop table if exists orgs.acro_base1;
 create table orgs.acro_base1 as
-select distinct id, name_to_match
-from orgs.ror_names;
+select distinct n.id, n.name_to_match
+from orgs.ror_names  n
+inner join orgs.ror_acronyms a
+on n.id = a.id;
 
---241680
+--115641
 
 -- replace hyphens with spaces to split the words
 
@@ -80,7 +85,7 @@ update orgs.acro_base1
 set name_to_match = replace(name_to_match, '-', ' ')
 where name_to_match like '%-%';
 
---10429
+--4941
 
 -- but this will also cause duplication...
 
@@ -89,7 +94,7 @@ create table orgs.acro_base2 as
 select distinct id, name_to_match
 from orgs.acro_base1;
 
--- 241610
+--115610
 
 -- get the individual words in each name_to_match
 
@@ -107,7 +112,7 @@ insert into orgs.ror_acro_words (ror_id, acro_base, word)
 select id, name_to_match, regexp_split_to_table(name_to_match, '\s+') as word
 	 from orgs.ror_derived_acronyms;
 
--- 311265
+-- 363088
 
 -- construct table to hold derived acronyms and fill it with 
 -- all current non acronym names that have one or more linked acronyms
@@ -137,39 +142,9 @@ on n.id = a.id
 where name_type <> 10
 and script_code = 'Latn';
 
+--64907
 
--- replace hyphens with spaces to split the words
-
-update orgs.ror_derived_acronyms
-set acro_base = replace(acro_base, '-', ' ')
-where acro_base like '%-%';
-
--- 3619
-
--- but this will add to the duplicates already in the system
-
--- get the individual words in each name_to_match
-
-drop table if exists orgs.ror_acro_words;
-create table orgs.ror_acro_words (
-     id int not null generated always as identity
-   , ror_id  varchar
-   , acro_base varchar
-   , word varchar
-);
-create index ror_acro_words_id on orgs.ror_acro_words(id, acro_base);
-
-
-insert into orgs.ror_acro_words (ror_id, acro_base, word)
-select id, acro_base, 
-           regexp_split_to_table(acro_base, '\s+') as word
-from (
-		select distinct id, acro_base
-		from orgs.ror_derived_acronyms) d;
-
--- 315,466
-
--- recombine the letter to create a full derived acronym value
+-- recombine the letters to create a full derived acronym value
 
 update orgs.ror_derived_acronyms a
 set der_acro = f.ac
@@ -180,28 +155,36 @@ from (
 where a.id = f.ror_id
 and a.acro_base = f.acro_base;
 
+--64838
+
 -- where der_acro is only one letter cannot be an acronym
 -- as all are at least two letters
 
 delete from orgs.ror_derived_acronyms 
 where length(der_acro) = 1
 
--- 491
+-- 671
 
 -- remove 'of' and 'the' from listing of name words
 
 delete from orgs.ror_acro_words
 where word in ('of', 'the', 'de', 'des', 'du', 'la', 'le', 'les', 'los', 'der', 'del', 'di', 'el', 'za');
 
--- about 31,546 go
+-- about 35337 go
 
--- need to remove initial l' from (french) words
+-- also need to remove initial l' and d' from (mostly french) words
 
 update orgs.ror_acro_words
 set word = substring(word, 3)
 where word like 'l’%'
 
--- 766
+--880
+
+update orgs.ror_acro_words
+set word = substring(word, 3)
+where word like 'd’%'
+
+--1200
 
 update orgs.ror_derived_acronyms a
 set der_acro_wo_of = f.ac
@@ -212,12 +195,14 @@ from (
 where a.id = f.ror_id
 and a.acro_base = f.acro_base;
 
+--64167
+
 -- remove 'and' and '&' from listing of name words
 
 delete from orgs.ror_acro_words
 where word in ('and', '&', 'et', 'e', 'und', 'i');
 
---12501
+--14258
 
 update orgs.ror_derived_acronyms a
 set der_acro_wo_ofand = f.ac
@@ -228,12 +213,14 @@ from (
 where a.id = f.ror_id
 and a.acro_base = f.acro_base;
 
+--64167
+
 -- remove other stop words from listing of name words
 
 delete from orgs.ror_acro_words
-where word in ('for', 'für', 'in', 'en', 'y', 'on', 'a', 'v', 'pour', 'sur', 'à', 'voor', 'o', '/');
+where word in ('for', 'für', 'in', 'en', 'y', 'on', 'a', 'v', 'pour', 'per', 'sur', 'à', 'voor', 'o', '/');
 
--- 11239 go
+-- 12328 go
 
 update orgs.ror_derived_acronyms a
 set der_acro_wo_allsw = f.ac
@@ -243,7 +230,6 @@ from (
 		group by ror_id, acro_base ) f
 where a.id = f.ror_id
 and a.acro_base = f.acro_base;
-
 
 
 ----------------------------------------------------
@@ -266,7 +252,7 @@ from
 where y.id = x.id
 and y.name_to_match = x.name_to_match
 
--- 26629
+-- 26394
 
 update orgs.ror_acronyms y
 set lang_code = langs,
@@ -284,7 +270,7 @@ from
 where y.id = x.id
 and y.name_to_match = x.name_to_match
 
---283
+--282
 
 update orgs.ror_acronyms y
 set lang_code = langs,
@@ -302,7 +288,7 @@ from
 where y.id = x.id
 and y.name_to_match = x.name_to_match
 
---153
+--149
 
 
 update orgs.ror_acronyms y
@@ -321,8 +307,7 @@ from
 where y.id = x.id
 and y.name_to_match = x.name_to_match
 
---501
-
+--498
 
 
 update orgs.ror_names n
@@ -336,17 +321,19 @@ and n.name_type = 10
 and n.lang_code is null
 and a.lang_code is not null
 
---27,566
+--27,323
 
 select count(*)
 from orgs.ror_acronyms a
 where lang_code is  null
 
+--15,725
+
+
 
 -- for argentinian orgs
 -- those with CONICET are spanish
 -- and those beginning with 'UN' (Universidad Nacional)
-
 
 
 
@@ -458,6 +445,25 @@ on rn.id = ro.id
 order by country_code, id, name_type
 
 
+
+-- for argentinian orgs
+-- those with CONICET are spanish
+-- and those beginning with 'UN' (Universidad Nacional)
+
+-- for brazil if they start with UF (Universidade Federale)
+-- they are portuguese
+
+
+-- for UK, Australia, US - make them english
+-- also Chinese, Japanes (Korean? ) names
+
+-- almost all arab countries
+
+-- Some african countries topo
+
+
+-- if the derived acronym is part of the actual acronym ??
+-- pre-expand US, NHS so that they come back to the original (otherwise they become U, N etc.)
 
 
 
