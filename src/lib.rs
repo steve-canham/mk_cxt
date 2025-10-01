@@ -1,7 +1,7 @@
 
 pub mod setup;
 pub mod err;
-mod lkup;
+mod lups;
 mod locs;
 mod orgs;
 mod umls;
@@ -31,8 +31,8 @@ pub async fn run(args: Vec<OsString>) -> Result<(), AppError> {
 
         // (re)creates the MDR based lookup tables
 
-        lkup::create_tables(&pool).await?;
-        lkup::fill_tables(&pool).await?;
+        lups::create_tables(&pool).await?;
+        lups::fill_tables(&pool).await?;
     }
          
     if flags.import_locs {
@@ -50,6 +50,8 @@ pub async fn run(args: Vec<OsString>) -> Result<(), AppError> {
         locs::create_city_data(&pool).await?;
         locs::create_country_data(&pool).await?;
         locs::create_scope_data(&pool).await?;
+        locs::create_lang_codes_full_table(&pool).await?;
+        locs::transfer_lang_codes_to_cxt(&pool).await?;
       
         // remove the foreign tables from the context database
 

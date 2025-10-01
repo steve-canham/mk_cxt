@@ -82,7 +82,7 @@
  
      Ok(Config{
         folders: config_folders,
-         db_pars: config_db_pars,
+        db_pars: config_db_pars,
      })
  }
  
@@ -216,13 +216,13 @@ mod tests {
  
          let config = r#"
  [folders]
- log_folder_path="E:\\MDR source data\\cxt\\logs"
+ log_folder_path="home/steve/Data/MDR source data/cxt/logs"
          
  [database]
  db_host="localhost"
  db_user="user_name"
  db_password="password"
- db_port="5433"
+ db_port="5432"
 
  cnxt_db_name="cxt"
  orgs_db_name="ror"
@@ -232,10 +232,13 @@ mod tests {
  "#;
          let config_string = config.to_string();
          let res = populate_config_vars(&config_string).unwrap();
+
+         assert_eq!(res.folders.log_folder_path, PathBuf::from("home/steve/Data/MDR source data/cxt/logs"));
+
          assert_eq!(res.db_pars.db_host, "localhost");
          assert_eq!(res.db_pars.db_user, "user_name");
          assert_eq!(res.db_pars.db_password, "password");
-         assert_eq!(res.db_pars.db_port, 5433);
+         assert_eq!(res.db_pars.db_port, 5432);
 
          assert_eq!(res.db_pars.cxt_db_name, "cxt");
          assert_eq!(res.db_pars.orgs_db_name, "ror");
@@ -254,7 +257,7 @@ mod tests {
  db_host="localhost"
  db_user="user_name"
  db_password="password"
- db_port="5433"
+ db_port="5432"
  db_name="geo"
  "#;
          let config_string = config.to_string();
@@ -267,21 +270,24 @@ mod tests {
  
          let config = r#"
  [folders]
- log_folder_path="E:\\MDR source data\\cxt\\logs"
+ log_folder_path="home/steve/Data/MDR source data/cxt/logs"
 
  [database]
  db_host="localhost"
  db_user="user_name"
  db_password="password"
- db_port="5433"
+ db_port="5432"
 
  "#;
          let config_string = config.to_string();
          let res = populate_config_vars(&config_string).unwrap();
+
+         assert_eq!(res.folders.log_folder_path, PathBuf::from("home/steve/Data/MDR source data/cxt/logs"));
+
          assert_eq!(res.db_pars.db_host, "localhost");
          assert_eq!(res.db_pars.db_user, "user_name");
          assert_eq!(res.db_pars.db_password, "password");
-         assert_eq!(res.db_pars.db_port, 5433);
+         assert_eq!(res.db_pars.db_port, 5432);
 
          assert_eq!(res.db_pars.cxt_db_name, "cxt");
          assert_eq!(res.db_pars.orgs_db_name, "ror");
@@ -297,13 +303,13 @@ mod tests {
  
          let config = r#"
  [folders]
- log_folder_path="E:\\MDR source data\\cxt\\logs"
+ log_folder_path="home/steve/Data/MDR source data/cxt/logs"
 
  [database]
  db_host="localhost"
  db_user=""
  db_password="password"
- db_port="5433"
+ db_port="5432"
  db_name="geo"
  "#;
          let config_string = config.to_string();
@@ -316,7 +322,7 @@ mod tests {
  
          let config = r#"
  [folders]
- log_folder_path="E:\\MDR source data\\cxt\\logs"
+ log_folder_path="home/steve/Data/MDR source data/cxt/logs"
  
  [database]
  db_user="user_name"
@@ -324,6 +330,9 @@ mod tests {
  "#;
          let config_string = config.to_string();
          let res = populate_config_vars(&config_string).unwrap();
+
+         assert_eq!(res.folders.log_folder_path, PathBuf::from("home/steve/Data/MDR source data/cxt/logs"));
+
          assert_eq!(res.db_pars.db_host, "localhost");
          assert_eq!(res.db_pars.db_user, "user_name");
          assert_eq!(res.db_pars.db_password, "password");

@@ -1,0 +1,18 @@
+01/10 16:16:32  INFO            mk_cxt::setup::log_helper.70:  PROGRAM START
+01/10 16:16:32  INFO            mk_cxt::setup::log_helper.71:  
+01/10 16:16:32  INFO            mk_cxt::setup::log_helper.72:  ************************************
+01/10 16:16:32  INFO            mk_cxt::setup::log_helper.73:  
+01/10 16:16:32  INFO            mk_cxt::setup::log_helper.74:  log_folder: home/steve/Data/MDR source data/cxt/logs
+01/10 16:16:32  INFO            mk_cxt::setup::log_helper.75:  importing organisation data: false
+01/10 16:16:32  INFO            mk_cxt::setup::log_helper.76:  importing location data: true
+01/10 16:16:32  INFO            mk_cxt::setup::log_helper.77:  importing UMLS data: false
+01/10 16:16:32  INFO            mk_cxt::setup::log_helper.78:  
+01/10 16:16:32  INFO            mk_cxt::setup::log_helper.79:  ************************************
+01/10 16:16:32  INFO            mk_cxt::setup::log_helper.80:  
+01/10 16:16:32  ERROR                         mk_cxt::err.118:  
+******************************************** SQLX ERROR ********************************************
+error returned from database: schema "lkup" does not exist
+SQL was: CREATE EXTENSION IF NOT EXISTS postgres_fdw WITH SCHEMA lkup;
+****************************************************************************************************
+
+

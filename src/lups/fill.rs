@@ -2,7 +2,7 @@
 
 pub fn contribution_types<'a>() -> &'a str {
 
-    r#"insert into lkup.contribution_types (id, name, applies_to, description,
+    r#"insert into lups.contribution_types (id, name, applies_to, description,
           use_in_data_entry, list_order, source_org, date_added)
        values 
         (51, 'Study lead', 'individual', 'The individual who, if not the sponsor themselves, leads and co-ordinates the scientific and clinical activity within a clinical study, including co-ordinating the work of principal investigators at clinical sites. May be known as the Co-ordinating Investigator, the Study Chair, Study Director, the Scientific Contact or similar terms.', true, 10, 'ECRIN', '2019-01-14'),
@@ -56,7 +56,7 @@ pub fn contribution_types<'a>() -> &'a str {
 
 pub fn dataset_consent_types<'a>() -> &'a str {
 
-    r#"insert into lkup.dataset_consent_types (id, name, description, 
+    r#"insert into lups.dataset_consent_types (id, name, description, 
           list_order, source_org, date_added)
        values 
          (0, 'Not known', 'Information about consent for secondary use unavailable', 10, 'ECRIN', '2019-02-08'),
@@ -71,7 +71,7 @@ pub fn dataset_consent_types<'a>() -> &'a str {
 
 pub fn dataset_deidentification_levels<'a>() -> &'a str {
 
-    r#"insert into lkup.dataset_deidentification_levels (id, name, description, 
+    r#"insert into lups.dataset_deidentification_levels (id, name, description, 
           list_order, source_org, date_added)
        values 
         (0, 'Not known', 'No clear information available about the de-identification, if any, applied to the data', 10, 'ECRIN', '2019-02-08'),
@@ -83,7 +83,7 @@ pub fn dataset_deidentification_levels<'a>() -> &'a str {
 
 pub fn dataset_recordkey_types<'a>() -> &'a str {
 
-    r#"insert into lkup.dataset_recordkey_types (id, name, description, 
+    r#"insert into lups.dataset_recordkey_types (id, name, description, 
           list_order, source_org, date_added)
        values 
         (0, 'Not known', 'No clear information available about the record keys in use.', 10, 'ECRIN', '2019-02-08'),
@@ -95,7 +95,7 @@ pub fn dataset_recordkey_types<'a>() -> &'a str {
 
 pub fn date_types<'a>() -> &'a str {
 
-    r#"insert into lkup.date_types (id, name, description, on_papers_only,
+    r#"insert into lups.date_types (id, name, description, on_papers_only,
           use_in_data_entry, list_order, source_org, date_added)
        values 
         (15, 'Created', 'The date the resource itself was put together; this could be a date range or a single date for a final component, e.g., the finalised file with all of the data. Recommended for discovery. ', false, true, 10, 'DataCite', '2019-01-14'),
@@ -129,7 +129,7 @@ pub fn date_types<'a>() -> &'a str {
 
 pub fn description_types<'a>() -> &'a str {
 
-    r#"insert into lkup.description_types (id, name, description, 
+    r#"insert into lups.description_types (id, name, description, 
           use_in_data_entry, list_order, source_org, date_added)
        values 
         (20, 'Summary description', 'A textual summary of the resource (data, document or AV) and its contents', true, 5, 'ECRIN', '2022-02-17'),
@@ -149,7 +149,7 @@ pub fn description_types<'a>() -> &'a str {
     
 pub fn doi_status_types<'a>() -> &'a str {
 
-    r#"insert into lkup.doi_status_types (id, name, description, 
+    r#"insert into lups.doi_status_types (id, name, description, 
           list_order, source_org, date_added)
        values 
         (1, 'Exists in MDR system', 'This value should be accompanied by a valid DOI in the data object record.', 10, 'ECRIN', '2019-02-08'),
@@ -162,7 +162,7 @@ pub fn doi_status_types<'a>() -> &'a str {
 
 pub fn gender_eligibility_types<'a>() -> &'a str {
 
-    r#"insert into lkup.gender_eligibility_types (id, name, description, 
+    r#"insert into lups.gender_eligibility_types (id, name, description, 
           use_in_data_entry, list_order, source_org, date_added)
        values 
        (1, 'Female', 'Study recruits only female participants', true, 10, 'ECRIN', '2025-03-01'),
@@ -173,7 +173,7 @@ pub fn gender_eligibility_types<'a>() -> &'a str {
 
 pub fn identifier_types<'a>() -> &'a str {
 
-    r#"insert into lkup.identifier_types (id, name, applies_to, description, 
+    r#"insert into lups.identifier_types (id, name, applies_to, description, 
           use_in_data_entry, list_order, source_org, date_added)
        values 
         (11, 'Trial registry ID', 'Study', 'Org id should identify the registry.', true, 10, 'ECRIN', '2019-01-14'),
@@ -226,7 +226,7 @@ pub fn identifier_types<'a>() -> &'a str {
 
 pub fn iec_level_types<'a>() -> &'a str {
 
-    r#"insert into lkup.iec_level_types (id, name, description, 
+    r#"insert into lups.iec_level_types (id, name, description, 
           use_in_data_entry, list_order, source_org, date_added)
        values 
         (0, 'None', 'No inclusion / exclusion material in source material', true, 10, 'ECRIN', '2025-03-15'),
@@ -244,7 +244,7 @@ pub fn iec_level_types<'a>() -> &'a str {
 
 pub fn language_usage_types<'a>() -> &'a str {
 
-    r#"insert into lkup.language_usage_types (id, name, description, 
+    r#"insert into lups.language_usage_types (id, name, description, 
           list_order, source_org, date_added)
        values 
         (11, 'Original in English', 'Originally written in English.', 10, 'ECRIN', '2019-08-24'),
@@ -258,7 +258,7 @@ pub fn language_usage_types<'a>() -> &'a str {
 
 pub fn object_access_types<'a>() -> &'a str {
 
-    r#"insert into lkup.object_access_types (id, name, description, 
+    r#"insert into lups.object_access_types (id, name, description, 
           use_in_data_entry, list_order, source_org, date_added)
        values 
         (12, 'Public on-screen access', 'Completely open access on the web but content not available in any other format', false, 10, 'ECRIN', '2019-01-14'),
@@ -278,7 +278,7 @@ pub fn object_access_types<'a>() -> &'a str {
 
 pub fn object_classes<'a>() -> &'a str {
 
-    r#"insert into lkup.object_classes (id, name, description, 
+    r#"insert into lups.object_classes (id, name, description, 
           use_in_data_entry, list_order, source_org, date_added)
        values 
         (23, 'Text', 'A resource consisting primarily of words for reading, includes grey literature, lab notes, accompanying materials as well as published articles.', true, 5, 'DataCite', '2019-01-14'),
@@ -302,7 +302,7 @@ pub fn object_classes<'a>() -> &'a str {
 
 pub fn object_filter_types<'a>() -> &'a str {
 
-    r#"insert into lkup.object_filter_types (id, filter_as, description, 
+    r#"insert into lups.object_filter_types (id, filter_as, description, 
           list_order, source_org, date_added)
        values
         (11, 'Trial registry entry', 'T13 - Summary of the study and its aims, posted prospectively or retrospectively to a public registry (not currently filtered in the UI).', 10, 'ECRIN', '2020-04-10'),
@@ -328,7 +328,7 @@ pub fn object_filter_types<'a>() -> &'a str {
 
 pub fn object_relationship_types<'a>() -> &'a str {
 
-    r#"insert into lkup.object_relationship_types (id, name, description, 
+    r#"insert into lups.object_relationship_types (id, name, description, 
           use_in_data_entry, list_order, source_org, date_added)
        values 
         (11, 'Is cited by', 'Indicates that B includes A in a citation.', false, 10, 'DataCite', '2019-01-14'),
@@ -370,7 +370,7 @@ pub fn object_relationship_types<'a>() -> &'a str {
 
 pub fn object_types<'a>() -> &'a str {
 
-    r#"insert into lkup.object_types (id, name, object_class_id,
+    r#"insert into lups.object_types (id, name, object_class_id,
           filter_as_id, description, use_in_data_entry, list_order, source_org, date_added)
        values 
         (13, 'Trial registry entry', 23, '11', 'Summary of the study and its aims, posted prospectively or retrospectively to a public registry.', false, 5, 'ECRIN', '2019-01-14'),
@@ -499,7 +499,7 @@ pub fn object_types<'a>() -> &'a str {
 
 pub fn org_attribute_types<'a>() -> &'a str {
 
-    r#"insert into lkup.org_attribute_types (id, name, data_type, 
+    r#"insert into lups.org_attribute_types (id, name, data_type, 
           description, list_order, source_org, date_added)
        values 
         (11, 'URL', 'url', 'URL of the landing page of the organisation – may be in various language versions', 10, 'ROR', '2021-07-18'),
@@ -514,7 +514,7 @@ pub fn org_attribute_types<'a>() -> &'a str {
 
 pub fn org_classes<'a>() -> &'a str {
 
-    r#"insert into lkup.org_classes (id, name, description, list_order, source_org, date_added)
+    r#"insert into lups.org_classes (id, name, description, list_order, source_org, date_added)
        values 
        (100, 'Government', 'An organization that is part of or operated by a national or regional government and that conducts or supports research.', 10, 'ROR', '2025-01-15'), 
        (200, 'Education', 'A university or similar institution involved in providing education and educating/employing researchers.', 20, 'ROR', '2025-01-15'), 
@@ -530,7 +530,7 @@ pub fn org_classes<'a>() -> &'a str {
 
 pub fn org_name_qualifier_types<'a>() -> &'a str {
 
-    r#"insert into lkup.org_name_qualifier_types (id, name, description, 
+    r#"insert into lups.org_name_qualifier_types (id, name, description, 
           list_order, source_org, date_added)
        values 
         (1, 'Default', 'The default (and usual display) name. Should normally be in the dominant local language.', 10, 'ECRIN', '2020-06-01'),
@@ -546,7 +546,7 @@ pub fn org_name_qualifier_types<'a>() -> &'a str {
 
 pub fn org_relationship_types<'a>() -> &'a str {
 
-    r#"insert into lkup.org_relationship_types (id, name, description, 
+    r#"insert into lups.org_relationship_types (id, name, description, 
           list_order, source_org, date_added)
        values 
         (1001, 'is a department within', '', 20, 'ECRIN', '2020-06-01'),
@@ -567,7 +567,7 @@ pub fn org_relationship_types<'a>() -> &'a str {
 
 pub fn org_types<'a>() -> &'a str {
 
-    r#"insert into lkup.org_types (id, class_id, name, 
+    r#"insert into lups.org_types (id, class_id, name, 
           description, list_order, source_org, date_added)
        values
         (1044, 11, 'National research institute / centre', '', 101, 'ECRIN', '2020-06-01'),
@@ -634,7 +634,7 @@ pub fn org_types<'a>() -> &'a str {
     
 pub fn resource_types<'a>() -> &'a str {
 
-    r#"insert into lkup.resource_types (id, name, description, 
+    r#"insert into lups.resource_types (id, name, description, 
           use_in_data_entry, list_order, source_org, date_added)
        values
         (11, 'PDF', '', true, 10, 'ECRIN', '2019-02-08'),
@@ -676,7 +676,7 @@ pub fn resource_types<'a>() -> &'a str {
 
 pub fn size_units<'a>() -> &'a str {
 
-    r#"insert into lkup.size_units (id, name, list_order, source_org, date_added)
+    r#"insert into lups.size_units (id, name, list_order, source_org, date_added)
        values 
         (11, 'Kb', 10, 'ECRIN', '2019-02-08'),
         (12, 'Mb', 20, 'ECRIN', '2019-02-08'),
@@ -689,7 +689,7 @@ pub fn size_units<'a>() -> &'a str {
 
 pub fn study_feature_categories<'a>() -> &'a str {
 
-    r#"insert into lkup.study_feature_categories (id, feature_type_id, name, 
+    r#"insert into lups.study_feature_categories (id, feature_type_id, name, 
           description, list_order, source_org, date_added)
        values 
         (105, 20, 'Early phase 1','Exploratory trials, involving very limited human exposure, with no therapeutic or diagnostic intent (e.g., screening studies, microdose studies).', 10, 'ClinicalTrials.gov', '2019-11-04'),
@@ -755,7 +755,7 @@ pub fn study_feature_categories<'a>() -> &'a str {
 
 pub fn study_feature_types<'a>() -> &'a str {
 
-    r#"insert into lkup.study_feature_types (id, context, name, 
+    r#"insert into lups.study_feature_types (id, context, name, 
           description, list_order, source_org, date_added)
        values 
         (20, 'interventional', 'Phase','For a clinical trial of a drug product (including a biological product), the numerical phase of the clinical trial.', 10, 'CliniclTrials.gov', '2019-11-05'),
@@ -770,7 +770,7 @@ pub fn study_feature_types<'a>() -> &'a str {
 
 pub fn study_relationship_types<'a>() -> &'a str {
 
-    r#"insert into lkup.study_relationship_types (id, name, description, 
+    r#"insert into lups.study_relationship_types (id, name, description, 
           use_in_data_entry, list_order, source_org, date_added)
        values 
         (11, 'Is a sub-study of', 'This study is a sub-study or sub-protocol undertaken at the same time as <the target study>.', true, 10, 'ECRIN', '2019-01-14'),
@@ -798,7 +798,7 @@ pub fn study_relationship_types<'a>() -> &'a str {
 
 pub fn study_statuses<'a>() -> &'a str {
 
-    r#"insert into lkup.study_statuses (id, name, description, 
+    r#"insert into lups.study_statuses (id, name, description, 
           use_in_data_entry, list_order, source_org, date_added)
        values
         (10, 'Not yet recruiting', 'Participants are not yet being recruited.', true, 10, 'ClinicalTrials.gov', '2019-02-08'),
@@ -818,7 +818,7 @@ pub fn study_statuses<'a>() -> &'a str {
 
 pub fn study_types<'a>() -> &'a str {
 
-    r#"insert into lkup.study_types (id, name, description, 
+    r#"insert into lups.study_types (id, name, description, 
           use_in_data_entry, list_order, source_org, date_added)
        values 
        (11, 'Interventional', 'Participants are assigned to receive an intervention so that researchers can study the effects.', true, 10, 'ClinicalTrials.gov', '2025-03-15'),
@@ -834,7 +834,7 @@ pub fn study_types<'a>() -> &'a str {
 
 pub fn time_units<'a>() -> &'a str {
 
-    r#"insert into lkup.time_units(id, name, use_in_data_entry, list_order, source_org, date_added)
+    r#"insert into lups.time_units(id, name, use_in_data_entry, list_order, source_org, date_added)
        values
         (11, 'Seconds', false, 10, 'ECRIN', '2020-03-27'),
         (12, 'Minutes', false, 20, 'ECRIN', '2020-03-27'),
@@ -848,7 +848,7 @@ pub fn time_units<'a>() -> &'a str {
 
 pub fn title_types<'a>() -> &'a str {
 
-    r#"insert into lkup.title_types (id, name, applies_to, description, 
+    r#"insert into lups.title_types (id, name, applies_to, description, 
           use_in_data_entry, list_order, source_org, date_added)
        values 
         (15, 'Public title', 'Study', 'In contrast to the full scientific title, usually from a trial registry - the default display name.', true, 10, 'ECRIN', '2019-01-14'),
@@ -876,7 +876,7 @@ pub fn title_types<'a>() -> &'a str {
 
 pub fn topic_types<'a>() -> &'a str {
 
-    r#"insert into lkup.topic_types (id, name, description, value_type, 
+    r#"insert into lups.topic_types (id, name, description, value_type, 
           use_in_data_entry, list_order, source_org, date_added)
        values 
         (11, 'Keyword', 'Topic that was not categorised or does not fit into one of the categories listed. Often written by study or object creators.', 'Free-text or controlled vocabulary', false, 10, 'CliniclTrials.gov', '2019-02-08'),
@@ -895,7 +895,7 @@ pub fn topic_types<'a>() -> &'a str {
 
 pub fn topic_vocabularies<'a>() -> &'a str {
 
-    r#"insert into lkup.topic_vocabularies (id, name, description, 
+    r#"insert into lups.topic_vocabularies (id, name, description, 
           use_in_data_entry, list_order, source_org, date_added)
        values
         (11, 'Authors', 'Free text, not intentionally part of any controlled vocabulary.', false, 10, 'ECRIN', '2019-02-08'),
@@ -924,7 +924,7 @@ pub fn topic_vocabularies<'a>() -> &'a str {
 
 pub fn trial_registries<'a>() -> &'a str {
 
-    r#"insert into lkup.trial_registries (id, name, description, 
+    r#"insert into lups.trial_registries (id, name, description, 
           list_order, source_org, date_added)
        values 
         (100120, 'ClinicalTrials.gov', '', 10, 'ECRIN', '2022-08-30'),

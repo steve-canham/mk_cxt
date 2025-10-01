@@ -126,11 +126,11 @@ pub async fn set_up_foreign_tables(pool: &PgPool, data_type: &str) -> Result<(),
         _ => "",
     };
     
-    // Operating in the cxt database. The lup schema can be guaranteed to exist
+    // Operating in the cxt database. The lups schema can be guaranteed to exist
     // (it holds the look up tables independent of FTW data)
-    // so use lup to hold the postgres_fdw if necessary
+    // so use lups to hold the postgres_fdw if necessary
     
-    let sql = "CREATE EXTENSION IF NOT EXISTS postgres_fdw WITH SCHEMA lkup;";  // WITH SCHEMA <schema> required the first time in DB
+    let sql = "CREATE EXTENSION IF NOT EXISTS postgres_fdw WITH SCHEMA lups;";  // WITH SCHEMA <schema> required the first time in DB
     sqlx::raw_sql(sql).execute(pool)
     .await.map_err(|e| AppError::SqlxError(e, sql.to_string()))?;
 
@@ -196,7 +196,7 @@ mod tests {
 
         let config = r#"
 [folders]
-log_folder_path="E:\\MDR source data\\cxt\\logs1"
+log_folder_path="home/steve/Data/MDR source data/cxt/logs"
 
 [database]
 db_host="localhost"
@@ -213,12 +213,13 @@ db_port="5433"
         let cli_pars = cli_reader::fetch_valid_arguments(test_args).unwrap();
 
         let res = get_params(cli_pars, &config_string).unwrap();
+
+        assert_eq!(res.log_folder, PathBuf::from("home/steve/Data/MDR source data/cxt/logs"));
         assert_eq!(res.flags.create_lups, true);
         assert_eq!(res.flags.import_locs, false);
         assert_eq!(res.flags.import_orgs, false);
         assert_eq!(res.flags.import_umls, false);
         assert_eq!(res.flags.import_pubs, false);
-        assert_eq!(res.log_folder, PathBuf::from("E:\\MDR source data\\cxt\\logs1"));
 
     }
 
@@ -228,7 +229,7 @@ db_port="5433"
 
         let config = r#"
 [folders]
-log_folder_path="E:\\MDR source data\\cxt\\logs1"
+log_folder_path="home/steve/Data/MDR source data/cxt/logs"
 
 [database]
 db_host="localhost"
@@ -251,12 +252,13 @@ pubs_db_name="pub"
         let cli_pars = cli_reader::fetch_valid_arguments(test_args).unwrap();
 
         let res = get_params(cli_pars, &config_string).unwrap();
+
+        assert_eq!(res.log_folder, PathBuf::from("home/steve/Data/MDR source data/cxt/logs"));
         assert_eq!(res.flags.create_lups, false);
         assert_eq!(res.flags.import_locs, true);
         assert_eq!(res.flags.import_orgs, false);
         assert_eq!(res.flags.import_umls, false);
         assert_eq!(res.flags.import_pubs, true);
-        assert_eq!(res.log_folder, PathBuf::from("E:\\MDR source data\\cxt\\logs1"));
 
     }
    
@@ -266,7 +268,7 @@ pubs_db_name="pub"
 
         let config = r#"
 [folders]
-log_folder_path="E:\\MDR source data\\cxt\\logs2"
+log_folder_path="home/steve/Data/MDR source data/cxt/logs"
 
 [database]
 db_host="localhost"
@@ -289,12 +291,14 @@ pubs_db_name="pub"
         let cli_pars = cli_reader::fetch_valid_arguments(test_args).unwrap();
 
         let res = get_params(cli_pars, &config_string).unwrap();
+
+        assert_eq!(res.log_folder, PathBuf::from("home/steve/Data/MDR source data/cxt/logs"));
         assert_eq!(res.flags.create_lups, true);
         assert_eq!(res.flags.import_locs, true);
         assert_eq!(res.flags.import_orgs, true);
         assert_eq!(res.flags.import_umls, true);
         assert_eq!(res.flags.import_pubs, true);
-        assert_eq!(res.log_folder, PathBuf::from("E:\\MDR source data\\cxt\\logs2"));
+
     }
 }
 

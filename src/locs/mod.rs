@@ -4,6 +4,7 @@ mod scopes;
 
 use crate::err::AppError;
 use sqlx::{Pool, Postgres};
+use log::info;
 
 
 pub async fn create_mdr_tables(pool: &Pool<Postgres>) -> Result<(), AppError> {
@@ -48,6 +49,39 @@ pub async fn create_scope_data(pool: &Pool<Postgres>) -> Result<(), AppError> {
     scopes::create_scope_data_3(pool).await?;
 
     scopes::reset_message_level(pool).await?;
+
+    Ok(())
+}
+
+
+
+pub async fn create_lang_codes_full_table(pool: &Pool<Postgres>) -> Result<(), AppError> {
+
+    let sql = r#"drop table if exists lups.lang_codes_full;
+            create table lups.lang_codes_full
+            ( 
+                  id                  int PRIMARY KEY GENERATED ALWAYS AS IDENTITY (START WITH 1001 INCREMENT BY 1) 
+                , code                varchar
+                , name                varchar
+                , code_type           varchar
+            );
+            create index lang_codes_full_code on lups.lang_codes_full(code);"#;
+
+    sqlx::raw_sql(sql).execute(pool)
+            .await.map_err(|e| AppError::SqlxError(e, sql.to_string()))?;
+    Ok(())
+}
+
+
+pub async fn transfer_lang_codes_to_cxt(pool: &Pool<Postgres>) -> Result<(), AppError> {
+
+    let sql = r#"insert into locs.country_names (code, name, code_type)
+        select code, name, code_type
+        from ftw_geo.lang_codes cn;"#;
+
+    let res = sqlx::raw_sql(sql).execute(pool)
+    .await.map_err(|e| AppError::SqlxError(e, sql.to_string()))?;
+    info!("{} language code records transferred to lups schema", res.rows_affected());
 
     Ok(())
 }
