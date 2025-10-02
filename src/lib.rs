@@ -32,7 +32,7 @@ pub async fn run(args: Vec<OsString>) -> Result<(), AppError> {
         // (re)creates the MDR based lookup tables
 
         lups::create_tables(&pool).await?;
-        lups::fill_tables(&pool).await?;
+      
     }
          
     if flags.import_locs {

@@ -1,112 +1,88 @@
-mod create;
-mod fill;
+mod studies;
+mod objects;
+mod orgs;
 mod lang;
 
 use crate::err::AppError;
-use sqlx::{postgres::PgQueryResult, Pool, Postgres};
+use sqlx::{Pool, Postgres};
 
-
+/* 
 async fn execute_sql(sql: &str, pool: &Pool<Postgres>) -> Result<PgQueryResult, AppError> {
     
     sqlx::raw_sql(&sql).execute(pool)
         .await.map_err(|e| AppError::SqlxError(e, sql.to_string()))
 }
-
+*/
 
 pub async fn create_tables(pool: &Pool<Postgres>) -> Result<(), AppError> {
 
-    execute_sql(create::create_schema_sql(), pool).await?;
+    create_schema_sql(pool).await?;
 
-    create::contribution_types(pool).await?;
-    create::dataset_consent_types(pool).await?;
-    create::dataset_deidentification_levels(pool).await?;
-    create::dataset_recordkey_types(pool).await?;
-    create::date_types(pool).await?;
-    create::description_types(pool).await?;
-    create::doi_status_types(pool).await?;
-    create::gender_eligibility_types(pool).await?;
+    studies::create_contribution_types(pool).await?;
+    studies::create_gender_eligibility_types(pool).await?;
+    // studies::create_study_identifier_types(pool).await?;
+    studies::create_study_feature_categories(pool).await?;
+    studies::create_study_feature_types(pool).await?;
+    studies::create_study_relationship_types(pool).await?;
+    studies::create_study_statuses(pool).await?;
+    studies::create_study_types(pool).await?;
+    studies::create_iec_level_types(pool).await?;
 
-    create::object_access_types(pool).await?;
-    create::object_classes(pool).await?;
-    create::object_filter_types(pool).await?;
-    create::object_relationship_types(pool).await?;
-    create::object_types(pool).await?;
-    create::iec_level_types(pool).await?;
-    create::language_usage_types(pool).await?;
+    studies::create_title_types(pool).await?;
+    studies::create_topic_types(pool).await?;
+    studies::create_topic_vocabularies(pool).await?;
+    studies::create_trial_registries(pool).await?;
+    studies::create_time_units(pool).await?;
+
+    objects::create_dataset_consent_types(pool).await?;
+    objects::create_dataset_deidentification_levels(pool).await?;
+    objects::create_dataset_recordkey_types(pool).await?;
+    objects::create_date_types(pool).await?;
+    objects::create_description_types(pool).await?;
+    objects::create_object_access_types(pool).await?;
+    objects::create_object_identifier_types(pool).await?;
+    objects::create_object_classes(pool).await?;
+    objects::create_object_filter_types(pool).await?;
+    objects::create_object_relationship_types(pool).await?;
+    objects::create_object_types(pool).await?;
+    studies::create_iec_level_types(pool).await?;
+    objects::create_resource_types(pool).await?;
+    objects::create_size_units(pool).await?;
+
+    orgs::create_org_attribute_types(pool).await?;
+    orgs::create_org_classes(pool).await?;
+    orgs::create_org_name_qualifier_types(pool).await?;
+    orgs::create_org_relationship_types(pool).await?;
+    orgs::create_org_types(pool).await?;
 
 
-    create::org_attribute_types(pool).await?;
-    create::org_classes(pool).await?;
-    create::org_name_qualifier_types(pool).await?;
-    create::org_relationship_types(pool).await?;
-    create::org_types(pool).await?;
+    lang::create_language_codes(pool).await?;
+    lang::create_language_scripts(pool).await?;
 
-    create::resource_types(pool).await?;
-    create::size_units(pool).await?;
 
-    // create::study_identifier_types(pool).await?;
-    create::study_feature_categories(pool).await?;
-    create::study_feature_types(pool).await?;
-    create::study_relationship_types(pool).await?;
-    create::study_statuses(pool).await?;
-    create::study_types(pool).await?;
-    create::iec_level_types(pool).await?;
-
-    create::title_types(pool).await?;
-    create::topic_types(pool).await?;
-    create::topic_vocabularies(pool).await?;
-    create::trial_registries(pool).await?;
-
-    create::language_codes(pool).await?;
-    create::language_scripts(pool).await?;
-    create::language_usage_types(pool).await?;
-    create::time_units(pool).await?;
-
-    create::reset_message_sql(pool).await?;
+    reset_message_sql(pool).await?;
 
     Ok(())
 }
 
 
-pub async fn fill_tables(_pool: &Pool<Postgres>) -> Result<(), AppError> {
+async fn create_schema_sql(pool: &Pool<Postgres>) -> Result<(), AppError> {
 
-    //execute_sql(fill::contribution_types(), pool).await?;
-    //execute_sql(fill::dataset_consent_types(), pool).await?;
-    //execute_sql(fill::dataset_deidentification_levels(), pool).await?;
-    //execute_sql(fill::dataset_recordkey_types(), pool).await?;
-    //execute_sql(fill::date_types(), pool).await?;
-    //execute_sql(fill::description_types(), pool).await?;
-    //execute_sql(fill::doi_status_types(), pool).await?;
-    //execute_sql(fill::gender_eligibility_types(), pool).await?;
-    //xecute_sql(fill::identifier_types(), pool).await?;
-    //execute_sql(fill::iec_level_types(), pool).await?;
-    //execute_sql(fill::language_usage_types(), pool).await?;
-    //execute_sql(fill::object_access_types(), pool).await?;
-    //execute_sql(fill::object_classes(), pool).await?;
-    //execute_sql(fill::object_filter_types(), pool).await?;
-    //execute_sql(fill::object_relationship_types(), pool).await?;
-    //execute_sql(fill::object_types(), pool).await?;
-    //execute_sql(fill::org_attribute_types(), pool).await?;
-    //execute_sql(fill::org_classes(), pool).await?;
-    //execute_sql(fill::org_name_qualifier_types(), pool).await?;
-    //execute_sql(fill::org_relationship_types(), pool).await?;
-    //execute_sql(fill::org_types(), pool).await?;
-    //execute_sql(fill::resource_types(), pool).await?;
-    //execute_sql(fill::size_units(), pool).await?;
-    /* 
-    execute_sql(fill::study_feature_categories(), pool).await?;
-    execute_sql(fill::study_feature_types(), pool).await?;
-    execute_sql(fill::study_relationship_types(), pool).await?;
-    execute_sql(fill::study_statuses(), pool).await?;
-    execute_sql(fill::study_types(), pool).await?;
-    execute_sql(fill::time_units(), pool).await?;
-    execute_sql(fill::title_types(), pool).await?;
-    execute_sql(fill::topic_types(), pool).await?;
-    execute_sql(fill::topic_vocabularies(), pool).await?;
-    execute_sql(fill::trial_registries(), pool).await?;
+    let sql = r#"SET client_min_messages TO WARNING; 
+        create schema if not exists lups;"#;
 
-    execute_sql(lang::language_codes(), pool).await?;
-    execute_sql(lang::language_scripts(), pool).await?;
-*/
+    sqlx::raw_sql(&sql).execute(pool)
+        .await.map_err(|e| AppError::SqlxError(e, sql.to_string()))?;
+
+    Ok(())
+}
+
+async fn reset_message_sql(pool: &Pool<Postgres>) -> Result<(), AppError> {
+
+    let sql = r#"SET client_min_messages TO NOTICE;"#;
+
+    sqlx::raw_sql(&sql).execute(pool)
+        .await.map_err(|e| AppError::SqlxError(e, sql.to_string()))?;
+
     Ok(())
 }
