@@ -75,7 +75,7 @@ pub async fn create_lang_codes_full_table(pool: &Pool<Postgres>) -> Result<(), A
 
 pub async fn transfer_lang_codes_to_cxt(pool: &Pool<Postgres>) -> Result<(), AppError> {
 
-    let sql = r#"insert into locs.country_names (code, name, code_type)
+    let sql = r#"insert into lups.lang_codes_full (code, name, code_type)
         select code, name, code_type
         from ftw_geo.lang_codes cn;"#;
 

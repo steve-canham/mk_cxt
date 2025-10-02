@@ -1,5 +1,5 @@
 
-
+/*
 pub fn contribution_types<'a>() -> &'a str {
 
     r#"insert into lups.contribution_types (id, name, applies_to, description,
@@ -169,8 +169,8 @@ pub fn gender_eligibility_types<'a>() -> &'a str {
        (2, 'Male', 'Study recruits only male participants', true, 20, 'ECRIN', '2025-03-01'),
        (3, 'Both', 'Study open to both male and female participants', true, 30, 'ECRIN', '2025-03-01');"#
 }
-
-
+ */
+/* 
 pub fn identifier_types<'a>() -> &'a str {
 
     r#"insert into lups.identifier_types (id, name, applies_to, description, 
@@ -223,7 +223,8 @@ pub fn identifier_types<'a>() -> &'a str {
         (0, 'Not yet known', 'All', 'Dummy value supplied by default on entity creation.', false, 990, 'ECRIN', '2019-01-14'),
         (1, 'Type not provided', 'All', 'Missing type data in data source.', false, 998, 'ECRIN', '2019-11-03');"#
 }
-
+        */
+/* 
 pub fn iec_level_types<'a>() -> &'a str {
 
     r#"insert into lups.iec_level_types (id, name, description, 
@@ -497,6 +498,8 @@ pub fn object_types<'a>() -> &'a str {
 }
 
 
+
+
 pub fn org_attribute_types<'a>() -> &'a str {
 
     r#"insert into lups.org_attribute_types (id, name, data_type, 
@@ -686,6 +689,9 @@ pub fn size_units<'a>() -> &'a str {
         (16, 'Other', 60, 'ECRIN', '2019-02-08'),
         (0, 'Not yet known', 99, 'ECRIN', '2019-02-08');"#
 }
+
+
+
 
 pub fn study_feature_categories<'a>() -> &'a str {
 
@@ -946,3 +952,4 @@ pub fn trial_registries<'a>() -> &'a str {
         (100131, 'Thai Clinical Trials Register', '', 180, 'ECRIN', '2022-08-30'),
         (101989, 'Lebenon Clinical Trial Registry', '', 190, 'ECRIN', '2022-08-30');"#
 }
+*/

@@ -50,6 +50,7 @@ pub async fn run(args: Vec<OsString>) -> Result<(), AppError> {
         locs::create_city_data(&pool).await?;
         locs::create_country_data(&pool).await?;
         locs::create_scope_data(&pool).await?;
+        
         locs::create_lang_codes_full_table(&pool).await?;
         locs::transfer_lang_codes_to_cxt(&pool).await?;
       

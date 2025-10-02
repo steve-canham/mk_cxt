@@ -1,3 +1,5 @@
+
+/* 
 pub fn language_codes<'a>() -> &'a str {
 
     r#"insert into lups.language_codes (code, marc_code,
@@ -187,3 +189,4 @@ pub fn language_scripts<'a>() -> &'a str {
     ('Wara', 'Warang Citi', 'Warang Citi (Varang Kshiti)', 'LtR', 84, 'Used in parts of India', '118A0', '118FF', 71840, 71935, 'ISO 15924', '2022-06-23'),
     ('Yiii', 'Yi', 'Yi', 'LtR', 1220, 'Used in parts of China', 'A000', 'A48F', 40960, 42127, 'ISO 15924', '2022-06-23');"#
 }
+*/
