@@ -259,8 +259,8 @@ pub async fn create_object_classes(pool: &Pool<Postgres>) -> Result<(), AppError
 
 pub async fn create_object_identifier_types(pool: &Pool<Postgres>) -> Result<(), AppError> {
 
-    let sql = r#"drop table if exists lups.identifier_types;
-    CREATE TABLE lups.identifier_types (
+    let sql = r#"drop table if exists lups.object_identifier_types;
+    CREATE TABLE lups.object_identifier_types (
         id                 int4       NOT NULL PRIMARY KEY,
         name               varchar    NULL,
 	    description        varchar    NULL,
@@ -271,7 +271,7 @@ pub async fn create_object_identifier_types(pool: &Pool<Postgres>) -> Result<(),
     sqlx::raw_sql(&sql).execute(pool)
         .await.map_err(|e| AppError::SqlxError(e, sql.to_string()))?;
 
-    let sql = r#"insert into lups.identifier_types (id, name, description, 
+    let sql = r#"insert into lups.object_identifier_types (id, name, description, 
           use_in_data_entry, list_order)
        values 
         (53, 'BBMRI Collection Id', 'The Id assigned by BBMRI to a collection of samples', false, 60),
@@ -324,24 +324,40 @@ pub async fn create_object_filter_types(pool: &Pool<Postgres>) -> Result<(), App
 
     let sql = r#"insert into lups.object_filter_types (id, filter_as, description, list_order)
        values
-        (11, 'Trial registry entry', 'T13 - Summary of the study and its aims, posted prospectively or retrospectively to a public registry (not currently filtered in the UI).', 10),
-        (12, 'Registry results summary', 'T28  - Summary of study results, as displayed in a trial registry.', 20),
-        (21, 'Journal article', 'T12 - Articles in peer-reviewed publications that disseminate the results of original research and scholarship; T100 - Journal article abstract; T117 - Special journal issues; T135 - Working Paper / Pre-print; T152 - Grouped journal articles; 201 - Journal article - protocol; 202 - Journal article - results; 203 - Journal article - interim results; 204 - Journal article - review; 210 - Preprint article.', 30),
-        (22, 'Study protocol', 'T11 - Protocol: Structured document describing the study, its rationale, methodology, outcome measures etc; T42 - Redacted protocol; T74 - Protocol with SAP; T75 - Protocol with informed consent forms; T76 - Protocol with SAP and ICFs; 201 - Journal article - protocol.', 50),
-        (23, 'Study overview', 'T38 - A brief overview of the study, may be an abridged protocol, or as used within the study web site or other study documents.', 55),
-        (24, 'Patient consent/information forms', 'T18 - Informed consent forms, the form or forms given to participants to formally record their informed consent to study participation; T19 - Patient information sheets, the information provided to study participants, especially as part of the consenting process; 75 - Protocol with informed consent forms; 76 - Protocol with SAP and ICFs.', 60),
-        (25, 'Data collection forms', 'T21 - Data collection forms, Copies, in electronic and / or paper form, of the case report forms (CRFs and / or eCRFs) used for collecting data. T30 - Annotated copies of CRFs / eCRFs; T40 - Standard instruments: standardised rating instruments, including questionnaires.', 70),
-        (26, 'Manual of procedures', 'T35 - Manual of Operations, T36 - Manual of Procedures. Description of specific operations, workflow, procedures and techniques within the study.', 80),
-        (31, 'Statistical analysis plan', 'T22 - Statistical analysis plan: the details of the proposed analysis for the study, listing the individual descriptive statistics and tests of inference, and their parameters; T29 - Analysis notes: a summary of the analysis carried out and / or any caveats to be borne in mind when interpreting results; T43 - a redacted SAP; 74 - Protocol with SAP; 76 - Protocol with SAP and ICFs.', 90),
-        (32, 'Clinical study report', 'T26 - Clinical study report - a full end of study report with detailed efficacy and safety results; T27 - a redacted clinical study report; T79 - a summary CSR; T85 - Unpublished Study Report: A report of a study, or part of a study, not formally published. May be an internal interim document within a long term study.', 100),
-        (33, 'Data description', 'T20 - Database specification: Functional specification of the database including details of individual data items, types, ranges, logic checks, etc.; T31 - Data dictionary: A detailed, item by item, description of the data points in the dataset; T32 - Data Overview: A summary of the data indicating the nature of different tables, time points of data etc; T73 - IPD or aggregate data metadata definition;  T81 - Data collection schedule; T82 - Data coding manual.', 110),
-        (34, 'IP or Aggregated Data', 'T80 - Individual participant data: A dataset simply called Individual Participant Data, or its equivalent, with no further qualification or description. Any of T51 - T68, being different specific types of IPD, e.g. relating to sub-populations or different time points, or metadata associated with IPD. T69 - Aggregated result dataset: Dataset with aggregated / summary results and statistics from the study. T70, T71, T72, being different specific types of aggregate data. Also T153 - Grouped analysis datasets, and T154 - Grouped aggregate datasets.', 120),
+        (11, 'Trial registry entry', 'T30 - Summary of the study and its aims, posted prospectively or retrospectively to a public registry (not currently filtered in the UI).', 10),
+        (12, 'Registry results summary', 'T31 - Summary of study results, as displayed in a trial registry.', 20),
+
+        (21, 'Journal article', 'T200 - Articles in peer-reviewed publications that disseminate the results of original research and scholarship; T201 - Journal article - protocol; T202 - Journal article - results; T203 - Journal article - interim results; T204 - Journal article - review; T205 - Journal article abstract; T210 - Preprint article; T211 - Grouped journal articles.', 30),
+
+        (22, 'Study protocol', 'T11 - Protocol: Structured document describing the study, its rationale, methodology, outcome measures etc; T16 - Redacted protocol; T20 - Protocol with SAP; T21 - Protocol with informed consent forms; T22 - Protocol with SAP and ICFs; T201 - Journal article - protocol.', 50),
+
+        (23, 'Study overview', 'T32- A brief overview of the study, may be an abridged protocol, or as used within the study web site or other study documents.', 55),
+        
+        (24, 'Patient consent/information forms', 'T13 - Informed consent forms, the form or forms given to participants to formally record their informed consent to study participation; T14 - Patient information sheets, the information provided to study participants, especially as part of the consenting process; T21 - Protocol with informed consent forms; T22 - Protocol with SAP and ICFs.', 60),
+
+        (25, 'Data collection forms', 'T50 - Data collection forms, Copies, in electronic and / or paper form, of the case report forms (CRFs and / or eCRFs) used for collecting data. T51- Annotated copies of CRFs / eCRFs; T52 - Standard instruments: standardised rating instruments, including questionnaires.', 70),
+
+        (26, 'Manual of procedures', 'T60 - Manual of Operations, T61 - Manual of Procedures. Description of specific operations, workflow, procedures and techniques within the study.', 80),
+
+        (31, 'Statistical analysis plan', 'T12 - Statistical analysis plan: the details of the proposed analysis for the study, listing the individual descriptive statistics and tests of inference, and their parameters; T17 - Redacted SAP; T20 - Protocol with SAP; T22 - Protocol with SAP and ICFs; T292 - Analysis notes: a summary of the analysis carried out and / or any caveats to be borne in mind when interpreting results.', 90),
+
+        (32, 'Clinical study report', 'T120 - Clinical study report - a full end of study report with detailed efficacy and safety results; T121 - a redacted clinical study report; T122 - a summary CSR; T123 - Unpublished Study Report: A report of a study, or part of a study, not formally published. May be an internal interim document within a long term study; T124 - Summary of results for public.', 100),
+
+        (33, 'Data description', 'T53 - Database specification: Functional specification of the database including details of individual data items, types, ranges, logic checks, etc.; T54 - Data dictionary: A detailed, item by item, description of the data points in the dataset; T55 - Data Overview: A summary of the data indicating the nature of different tables, time points of data etc; T57 - Data collection schedule; T58 - Data coding manual; T290 - IPD or aggregate data metadata definition.', 110),
+       
+        (34, 'IP or Aggregated Data', 'T250 - Individual participant data: A dataset simply called Individual Participant Data, or its equivalent, with no further qualification or description. Any of T251 - T269, being different specific types of IPD, e.g. relating to sub-populations or different time points, or metadata associated with IPD. T280 - Aggregated result dataset: Dataset with aggregated / summary results and statistics from the study. T281 - T284, being different specific types of aggregate data.', 120),
+                      
+        (36, 'Other study resource', 'T10 - Introduction to document set; T62 - Trial master file contents list; T63 - Investigational Product Information; T80 - Literature Review; T81 - General background paper; T82 - Publication List; T83 - Bibliography; T84 - List of web links; T85 - Definitions of terms; T86 - Data management plan; T126 - Data monitoring committee report; T150 - Funding submission; T151 - Ethics submission; T152 - Ethics approval notification; T153 - Regulatory authority submission; T154 - Regulatory authority approval notification; T971 - Other dataset object: any dataset class resource not defined elsewhere.', 140),
+       
+        (41, 'Other informational material', 'T90 - Course materials (for teaching); T91 - Online Resource; T125 - Deliverable Report; T212 - Dissertation; T213 - Supervised Student Publication; T220 - Book; T221 - Book chapter: T222 - Book Series; T223 - Edited Book; T226 - Conference Abstract; T227 - Conference Paper; T228 - Conference Poster: T230 - Magazine Article; T231 - Newsletter Article; T232 - Newspaper Article.', 150),
+       
+        (51, 'Website', 'T40 - Stand-alone locations on the web where multiple types of information on a specific theme are available. May include interactive features for contributions from readers.', 190),
+       
+        (52, 'Software', 'T92 - CDMS (Clinical Data Management System); T93 - Trial Management System; T94 - Data Extraction System; T391 - Script(s) used in analysis.', 200),
+
         (53, 'Samples description', 'T301 - Associated biosamples (link is to sample description)', 130),
-        (36, 'Other study resource', 'T14 - Ethics submission; T15 - Ethics approval notification; T16 - Regulatory authority submission; T17 - Regulatory authority approval notification; T23 - Data management plan; T24 - Trial master file contents list; T25 - Data monitoring committee report; T33 - Definitions of terms; T34 - Literature Review; T39 - Publication List; T77 - Investigational Product Information; T78 - General background to research topic; T83 - Bibliography; T84 - Introduction to document set; T86 - List of web links; T115 - Funding Submission; T171 - Other dataset object: any dataset class resource not defined elsewhere.', 140),
-        (41, 'Other informational material', 'T88 - Summary of results for public; T106 - Conference Abstract; T107 - Conference Paper; T108 - Conference Poster: T109 - Conference Program; T119 - Magazine Article; T121 - Newsletter Article; T122 - Newspaper Article; T101 - Book; T102 - Book chapter: T103 - Book Prospectus; T104 - Book Review; T105 - Book Series; ;T112 - Dissertation;  T113 - Edited Book;  T114 -Encyclopaedia Entry; T120 - Manual (for education / training purposes); T123 - Online Resource; T126 - Report; T127 - Research Tool; T128 - Supervised Student Publication.', 150),
-        (51, 'Website', 'T134 - Stand-alone locations on the web where multiple types of information on a specific theme are available. May include interactive features for contributions from readers.', 190),
-        (52, 'Software', 'T166 - Script(s) used in analysis; T167 - CDMS (Clinical Data Management System); T168 - Trial Management System; T169 - eTMF; T170 - Data Extraction System.', 200),
-        (99, 'Other', 'All types in each object class labelled as Other (T37, T151, T155 - T165).', 210);"#;
+        
+        (99, 'Other', 'All types in each object class labelled as Other (T951 - T964, excepting T971, plus T990)', 990);"#;
 
     sqlx::raw_sql(&sql).execute(pool)
         .await.map_err(|e| AppError::SqlxError(e, sql.to_string()))?;
@@ -433,9 +449,9 @@ pub async fn create_object_types(pool: &Pool<Postgres>) -> Result<(), AppError> 
 
         (11, 'Study protocol', 23, '22', 'Structured document describing the study, its rationale, methodology, outcome measures etc.', true, 7),
         (12, 'Statistical analysis plan', 23, '31', 'The details of the proposed analysis for the study, listing the individual descriptive statistics and tests of inference, and their parameters.', true, 60),
+        
         (13, 'Informed consent forms', 23, '24', 'The form or forms given to participants to formally record their informed consent to study participation.', true, 40),
         (14, 'Patient information sheets', 23, '24', 'The information provided to study participants, especially as part of the consenting process.', true, 45),
-        (15, 'Study overview', 23, '23', 'A brief overview of the study, may be an abridged protocol, or as used within the study web site or other study documents.', true, 20),
         (16, 'Redacted protocol', 23, '22', 'A redacted version of the study protocol.', false, 94),
         (17, 'Redacted SAP', 23, '31', 'A redacted version of the statistical analysis plan.', false, 61),
         (20, 'Protocol SAP', 23, '22, 31', 'Study Protocol and Statistical Analysis Plan, combined in one document.', true, 62),
@@ -444,21 +460,23 @@ pub async fn create_object_types(pool: &Pool<Postgres>) -> Result<(), AppError> 
 
         (30, 'Trial registry entry', 23, '11', 'Summary of the study and its aims, posted prospectively or retrospectively to a public registry.', false, 5),
         (31, 'Trial registry results summary', 23, '12', 'Summary of study results, as displayed in a tab or page within a trial registry.', false, 87),
+        (32, 'Study overview', 23, '23', 'A brief overview of the study, may be an abridged protocol, or as used within the study web site or other study documents.', true, 20),
 
         (40, 'Website', 23, '51', 'Stand-alone locations on the web where multiple types of information on a specific theme are available. May include interactive features for contributions from readers.', false, 355),
+               
+        (50, 'Data collection forms', 23, '25', 'Copies, in electronic and / or paper form, of the case report forms (CRFs and / or eCRFs) used for collecting data.', true, 55),
+        (51, 'Annotated data collection forms', 23, '25', 'Data Collection forms (CRFs or eCRFs) annotated to provide further details of each item (e.g. data type, allowable range).', true, 56),
+        (52, 'Standard instruments', 23, '25', 'Standardised rating instruments, including questionnaires, used and / or developed in a study.', true, 58),
        
-        (50, 'Database specification', 23, '33', 'Functional specification of the database including details of individual data items, types, ranges, etc. May also contain details of logic and consistency checks, and any derived values.', true, 50),
-        (51, 'Data collection forms', 23, '25', 'Copies, in electronic and / or paper form, of the case report forms (CRFs and / or eCRFs) used for collecting data.', true, 55),
-        (52, 'Annotated data collection forms', 23, '25', 'Data Collection forms (CRFs or eCRFs) annotated to provide further details of each item (e.g. data type, allowable range).', true, 56),
-        (53, 'Data dictionary', 23, '33', 'A detailed, item by item, description of the data points in the dataset, sufficient for accurate analysis of the data by others.', true, 52),
-        (54, 'Data overview', 23, '33', 'A summary of the data, without the details of a data dictionary but indicating the nature of different tables, time points of data etc.', true, 48),
-        (55, 'Data management plan', 23, '36', 'A plan for, and record of, data management activities in the study, covering the whole data life cycle.', true, 65),
-        (56, 'Data collection schedule', 23, '33', 'A document detailing the time points of data collection in a study (or ‘visits’).', true, 72),
-        (57, 'Data coding manual', 23, '33', 'A manual or guide that provides instructions on how to complete and / or interpret scores and codes within a study.', true, 74),
+        (53, 'Database specification', 23, '33', 'Functional specification of the database including details of individual data items, types, ranges, etc. May also contain details of logic and consistency checks, and any derived values.', true, 50),
+        (54, 'Data dictionary', 23, '33', 'A detailed, item by item, description of the data points in the dataset, sufficient for accurate analysis of the data by others.', true, 52),
+        (55, 'Data overview', 23, '33', 'A summary of the data, without the details of a data dictionary but indicating the nature of different tables, time points of data etc.', true, 48),
+        (57, 'Data collection schedule', 23, '33', 'A document detailing the time points of data collection in a study (or ‘visits’).', true, 72),
+        (58, 'Data coding manual', 23, '33', 'A manual or guide that provides instructions on how to complete and / or interpret scores and codes within a study.', true, 74),
        
-        (60, 'Trial master file contents list', 23, '36', 'A listing of the documents expected within a trial master file, and their organisation, in electronic and / or paper form.', false, 70),
-        (61, 'Manual of operations', 23, '26', 'Description of specific operations and workflow within the study.', true, 37),
-        (62, 'Manual of procedures', 23, '26', 'Description of specific procedures and techniques used within the study.', true, 38),
+        (60, 'Manual of operations', 23, '26', 'Description of specific operations and workflow within the study.', true, 37),
+        (61, 'Manual of procedures', 23, '26', 'Description of specific procedures and techniques used within the study.', true, 38),
+        (62, 'Trial master file contents list', 23, '36', 'A listing of the documents expected within a trial master file, and their organisation, in electronic and / or paper form.', false, 70),
         (63, 'Investigational product information', 23, '36', 'Summary of information about a medicinal product. May be a package insert or investigator’s brochure.', true, 92),
        
         (80, 'Literature review', 23, '36', 'Publications referenced within the literature review undertaken prior to the study.', false, 90),
@@ -466,19 +484,21 @@ pub async fn create_object_types(pool: &Pool<Postgres>) -> Result<(), AppError> 
         (82, 'Publication list', 23, '36', 'List of publications related to the study.', true, 91),
         (83, 'Bibliography', 23, '36', 'A list of publications making up a bibliography relevant to the study, but not necessarily generated or triggered by the study.', false, 76),
         (84, 'List of web links', 23, '36', 'A web page that includes a list of links to different items, e.g. individual CRFs.', false, 89),
+        (85, 'Definitiion of terms', 23, '36', 'A general glossary of terms used withi the study and its documents', false, 89),
+        (86, 'Data management plan', 23, '36', 'A plan for, and record of, data management activities in the study, covering the whole data life cycle.', true, 65),
         
         (90, 'Course materials (for teaching)', 23, '41', 'Course and assignment materials produced for teaching purposes.', false, 285),
         (91, 'Online resource', 23, '41', 'Information or data accessible only on the web via technical methods (e.g. search, hyperlinks).', false, 300),
-        (92, 'Standard instruments', 23, '25', 'Standardised rating instruments, including questionnaires, used or developed in a study.', true, 58),
-        (93, 'CDMS', 21, '52', 'Clinical Database Management System, or component within such a system, as used for clinical data management.', false, 410),
-        (94, 'Trial management system', 21, '52', 'System used to support study administration, including an eTMF.', false, 415),
-        (95, 'Data extraction system', 21, '52', 'Used for extracting data from remote resources using XML or web scraping.', false, 425),
+        (92, 'CDMS', 21, '52', 'Clinical Database Management System, or component within such a system, as used for clinical data management.', false, 410),
+        (93, 'Trial management system', 21, '52', 'System used to support study administration, including an eTMF.', false, 415),
+        (94, 'Data extraction system', 21, '52', 'Used for extracting data from remote resources using XML or web scraping.', false, 425),
         
         (120, 'Clinical study report', 23, '32', 'Full end of study report with detailed efficacy and safety results.', true, 80),
         (121, 'Redacted clinical study report', 23, '32', 'End of study report with some data withheld, usually because of commercial sensitivity.', true, 85),
         (122, 'Results or CSR summary', 23, '32', 'A results summary, or a  summary derived from  a Clinical Study Report', true, 83),
         (123, 'Unpublished study report', 23, '32', 'A report of a study, or part of a study, not formally published. May be an internal interim document within a long term study.', true, 80),
         (124, 'Summary of results for public', 23, '32', 'Summary of results specifically targeted at participants and members of the public, usually as a web page', true, 82),
+        
         (125, 'Deliverable Report', 23, '41', 'Reports disseminating the outcomes and deliverables of a research contract, e.g. a deliverable within an EU funded programme. May entail a contribution to public policy.', false, 315),
         (126, 'Data monitoring committee report', 23, '36', 'A report concerning the safety or efficacy of a study, from independent experts. Often containing recommendations about the continuation of the study.', false, 75),
 
@@ -489,17 +509,18 @@ pub async fn create_object_types(pool: &Pool<Postgres>) -> Result<(), AppError> 
         (154, 'Regulatory authority approval notification', 23, '36', 'Documents from a regulatory authority confirming that approval to run the trial has been granted.', true, 35),
               
         (200, 'Journal article - unspecified', 23, '21', 'Article in a peer-reviewed publication - exact relationship to the research study not known.', true, 10),
-        (202, 'Journal article - results', 23, '21', 'Article in a peer-reviewed publication - specifically describing the results of a study.', true, 12),
         (201, 'Journal article - protocol', 23, '21, 22', 'Article in a peer-reviewed publication - describing the protocol of a study.', true, 14),
+        (202, 'Journal article - results', 23, '21', 'Article in a peer-reviewed publication - specifically describing the results of a study.', true, 12),
         (203, 'Journal article - interim results', 23, '21', 'Article in a peer-reviewed publication - specifically describing interim results of a study, or results of a feasibility study.', true, 15),
         (204, 'Journal article - review', 23, '21', 'Article in a peer-reviewed publication - providing a review of arelated scientific area or a summary funder based report.', true, 16),
-       
+        (205, 'Journal article - abstract', 23, '21', 'Abstract only (for example when abstract is publicly available but opaper is behind a pay-wall.', true, 16),
         (210, 'Preprint article', 23, '21', 'Article in a preprint journal.', true, 19),
         (211, 'Grouped journal articles', 12, '21', 'A collection of journal articles on the same topic or study (should also be recorded separately).', false, 370),
+       
+       
         (212, 'Dissertation', 23, '41', 'Treatise advancing an original point of view resulting from research: a requirement for a doctoral degree.', false, 245),
         (213, 'Supervised student publication', 23, '41', 'Articles on research findings published jointly with or supervised by the thesis advisor. The findings relate to research undertaken by the student or the supervisor’s program of research.', false, 325),
-        (217, 'Journal issue', 23, '21', 'Periodical publications aimed at fostering intellectual debate and inquiry. Special journal issues are produced by editors with an established record of scholarship in the field and able to provide the direction of the theme. Journal issues bear a unique number of reference for publication.', false, 270),
-        
+           
         (220, 'Book', 23, '41', 'Books written by a single author or collaboratively based on research or scholarly findings generally derived from peer reviewed funding.', false, 190),
         (221, 'Book chapter', 23, '41', 'Texts written by a single author or collaboratively based on research or scholarly findings and expertise in a field.', false, 195),
         (222, 'Book series', 23, '41', 'Set of related books written by a single author or collaboratively based on research or scholarly findings.', false, 210),

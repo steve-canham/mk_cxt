@@ -20,7 +20,7 @@ pub async fn create_tables(pool: &Pool<Postgres>) -> Result<(), AppError> {
 
     studies::create_contribution_types(pool).await?;
     studies::create_gender_eligibility_types(pool).await?;
-    // studies::create_study_identifier_types(pool).await?;
+    studies::create_study_identifier_types(pool).await?;
     studies::create_study_feature_categories(pool).await?;
     studies::create_study_feature_types(pool).await?;
     studies::create_study_relationship_types(pool).await?;
