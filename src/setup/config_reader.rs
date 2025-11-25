@@ -66,14 +66,14 @@
  
      let toml_database = match toml_config.database {
          Some(d) => d,
-         None => {return Result::Err(AppError::ConfigurationError("Missing or misspelt configuration section.".to_string(),
-             "Cannot find a section called '[database]'.".to_string()))},
+         None => return Result::Err(AppError::ConfigurationError("Missing or misspelt configuration section.".to_string(),
+             "Cannot find a section called '[database]'.".to_string())),
      };
 
      let toml_folders = match toml_config.folders {
         Some(f) => f,
-        None => {return Result::Err(AppError::ConfigurationError("Missing or misspelt configuration section.".to_string(),
-           "Cannot find a section called '[folders]'.".to_string()))},
+        None => return Result::Err(AppError::ConfigurationError("Missing or misspelt configuration section.".to_string(),
+           "Cannot find a section called '[folders]'.".to_string())),
     };
     
     let config_folders = verify_folder_parameters(toml_folders)?;
@@ -135,73 +135,54 @@
  
  fn check_essential_string (src_name: Option<String>, value_name: &str, config_name: &str) -> Result<String, AppError> {
   
-     let s = match src_name {
-         Some(s) => s,
-         None => "none".to_string(),
-     };
- 
-     if s == "none".to_string() || s.trim() == "".to_string()
-     {
-         return Result::Err(AppError::ConfigurationError("Essential configuration value missing or misspelt.".to_string(),
-         format!("Cannot find a value for {} ({}).", value_name, config_name)))
+     if let Some(s) = src_name && s.trim() != "" {
+        Ok(s)
      }
      else {
-         Ok(s)
+        Result::Err(AppError::ConfigurationError("Essential configuration value missing or misspelt.".to_string(),
+        format!("Cannot find a value for {} ({}).", value_name, config_name)))
      }
  }
  
  
  fn check_defaulted_string (src_name: Option<String>, value_name: &str, default_name: &str, default:  &str) -> String {
-  
-     let s = match src_name {
-         Some(s) => s,
-         None => "none".to_string(),
-     };
- 
-     if s == "none".to_string() || s.trim() == "".to_string()
-     {
-         println!("No value found for {} path in config file - 
-         using the provided default value ('{}') instead.", value_name, default_name);
-         default.to_owned()
+
+    if let Some(s) = src_name && s.trim() != "" {
+        s
      }
      else {
-        s
+        println!("No value found for {} path in config file - 
+        using the provided default value ('{}') instead.", value_name, default_name);
+        default.to_owned()
      }
  }
  
  
  pub fn fetch_cxt_db_name() -> Result<String, AppError> {
-     let db_pars = match DB_PARS.get() {
-          Some(dbp) => dbp,
-          None => {
-             return Result::Err(AppError::MissingDBParameters());
-         },
-     };
-     Ok(db_pars.cxt_db_name.clone())
+     
+     match DB_PARS.get() {
+          Some(dbp) => Ok(dbp.cxt_db_name.clone()),
+          None => Result::Err(AppError::MissingDBParameters()),
+     }
  }
  
  
  pub fn fetch_db_conn_string(db_name: &String) -> Result<String, AppError> {
-     let db_pars = match DB_PARS.get() {
-          Some(dbp) => dbp,
-          None => {
-             return Result::Err(AppError::MissingDBParameters());
-         },
-     };
      
-     Ok(format!("postgres://{}:{}@{}:{}/{}", 
-     db_pars.db_user, db_pars.db_password, db_pars.db_host, db_pars.db_port, db_name))
+     match DB_PARS.get() {
+          Some(dbp) =>  Ok(format!("postgres://{}:{}@{}:{}/{}", 
+                                dbp.db_user, dbp.db_password, dbp.db_host, dbp.db_port, db_name)),
+          None => Result::Err(AppError::MissingDBParameters()),
+     }
  }
 
  
  pub fn fetch_db_pars() -> Result<DBPars, AppError> {
-    let db_pars = match DB_PARS.get() {
-        Some(dbp) => dbp,
-        None => {
-           return Result::Err(AppError::MissingDBParameters());
-       },
-   };
-   Ok(db_pars.clone())
+    
+    match DB_PARS.get() {
+        Some(dbp) => Ok(dbp.clone()),
+        None => Result::Err(AppError::MissingDBParameters()),
+   }
 }
   
  

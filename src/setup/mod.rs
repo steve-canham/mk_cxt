@@ -108,7 +108,7 @@ pub fn log_set_up() -> bool {
 
 pub async fn set_up_foreign_tables(pool: &PgPool, data_type: &str) -> Result<(), AppError> {
 
-    let dbp = config_reader::fetch_db_pars()?;
+    let dbp = fetch_db_pars()?;
 
     let source = match data_type {
         "locs" => dbp.locs_db_name, 
