@@ -20,7 +20,7 @@ pub async fn create_org_attribute_types(pool: &Pool<Postgres>) -> Result<(), App
     let sql = r#"insert into lups.org_attribute_types (id, name, data_type, 
           description, list_order)
        values 
-        (11, 'URL', 'url', 'URL of the landing page of the organisation – may be in various language versions', 10),
+        (11, 'Website URL', 'url', 'URL of the landing page of the organisation – may be in various language versions', 10),
         (12, 'Wikipedia entry', 'url', 'URL of main Wikipedia page, if one exists', 20),
         (13, 'Wikidata entry', 'url', 'URL of a Wikidata link, if one exists', 30),
         (1001, 'NLM Databank Id', 'string', 'Abbreviation used within PubMed to indicate a data repository', 40),
