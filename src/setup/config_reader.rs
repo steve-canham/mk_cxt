@@ -30,7 +30,6 @@
     pub orgs_db_name: Option<String>,
     pub locs_db_name: Option<String>,
     pub umls_db_name: Option<String>,
-    pub pubs_db_name: Option<String>,
  }
  
  pub struct Config {
@@ -53,7 +52,6 @@
      pub orgs_db_name: String,
      pub locs_db_name: String,
      pub umls_db_name: String,
-     pub pubs_db_name: String,
  }
  
  pub static DB_PARS: OnceLock<DBPars> = OnceLock::new();
@@ -107,7 +105,6 @@
      let orgs_db_name = check_defaulted_string (toml_database.orgs_db_name, "organisations DB name", "ror", "ror");
      let locs_db_name = check_defaulted_string (toml_database.locs_db_name, "location DB name", "geo", "geo");
      let umls_db_name = check_defaulted_string (toml_database.umls_db_name, "UMLS DB name", "uml", "uml");
-     let pubs_db_name = check_defaulted_string (toml_database.pubs_db_name, "publishers DB name", "pub", "pub");
  
      Ok(DBPars {
          db_host,
@@ -118,7 +115,6 @@
          orgs_db_name,
          locs_db_name,
          umls_db_name,
-         pubs_db_name,
      })
  }
 
@@ -197,7 +193,7 @@ mod tests {
  
          let config = r#"
  [folders]
- log_folder_path="home/steve/Data/MDR source data/cxt/logs"
+ log_folder_path="/home/steve/Data/MDR logs/cxt"
          
  [database]
  db_host="localhost"
@@ -209,12 +205,11 @@ mod tests {
  orgs_db_name="ror"
  locs_db_name="geo"
  umls_db_name="uml"
- pubs_db_name="pub"
  "#;
          let config_string = config.to_string();
          let res = populate_config_vars(&config_string).unwrap();
 
-         assert_eq!(res.folders.log_folder_path, PathBuf::from("home/steve/Data/MDR source data/cxt/logs"));
+         assert_eq!(res.folders.log_folder_path, PathBuf::from("/home/steve/Data/MDR logs/cxt"));
 
          assert_eq!(res.db_pars.db_host, "localhost");
          assert_eq!(res.db_pars.db_user, "user_name");
@@ -225,7 +220,6 @@ mod tests {
          assert_eq!(res.db_pars.orgs_db_name, "ror");
          assert_eq!(res.db_pars.locs_db_name, "geo");
          assert_eq!(res.db_pars.umls_db_name, "uml");
-         assert_eq!(res.db_pars.pubs_db_name, "pub");
     }
  
  
@@ -239,7 +233,11 @@ mod tests {
  db_user="user_name"
  db_password="password"
  db_port="5432"
- db_name="geo"
+ 
+ cnxt_db_name="cxt"
+ orgs_db_name="ror"
+ locs_db_name="geo"
+ umls_db_name="uml"
  "#;
          let config_string = config.to_string();
          let _res = populate_config_vars(&config_string).unwrap();
@@ -251,19 +249,19 @@ mod tests {
  
          let config = r#"
  [folders]
- log_folder_path="home/steve/Data/MDR source data/cxt/logs"
+ log_folder_path="/home/steve/Data/MDR logs/cxt"
 
  [database]
  db_host="localhost"
  db_user="user_name"
  db_password="password"
  db_port="5432"
-
+ 
  "#;
          let config_string = config.to_string();
          let res = populate_config_vars(&config_string).unwrap();
 
-         assert_eq!(res.folders.log_folder_path, PathBuf::from("home/steve/Data/MDR source data/cxt/logs"));
+         assert_eq!(res.folders.log_folder_path, PathBuf::from("/home/steve/Data/MDR logs/cxt"));
 
          assert_eq!(res.db_pars.db_host, "localhost");
          assert_eq!(res.db_pars.db_user, "user_name");
@@ -274,7 +272,6 @@ mod tests {
          assert_eq!(res.db_pars.orgs_db_name, "ror");
          assert_eq!(res.db_pars.locs_db_name, "geo");
          assert_eq!(res.db_pars.umls_db_name, "uml");
-         assert_eq!(res.db_pars.pubs_db_name, "pub");
     }
  
       
@@ -284,14 +281,18 @@ mod tests {
  
          let config = r#"
  [folders]
- log_folder_path="home/steve/Data/MDR source data/cxt/logs"
+ log_folder_path="/home/steve/Data/MDR logs/cxt"
 
  [database]
  db_host="localhost"
  db_user=""
  db_password="password"
  db_port="5432"
- db_name="geo"
+ 
+ cnxt_db_name="cxt"
+ orgs_db_name="ror"
+ locs_db_name="geo"
+ umls_db_name="uml"
  "#;
          let config_string = config.to_string();
          let _res = populate_config_vars(&config_string).unwrap();
@@ -303,7 +304,7 @@ mod tests {
  
          let config = r#"
  [folders]
- log_folder_path="home/steve/Data/MDR source data/cxt/logs"
+ log_folder_path="/home/steve/Data/MDR logs/cxt"
  
  [database]
  db_user="user_name"
@@ -312,7 +313,7 @@ mod tests {
          let config_string = config.to_string();
          let res = populate_config_vars(&config_string).unwrap();
 
-         assert_eq!(res.folders.log_folder_path, PathBuf::from("home/steve/Data/MDR source data/cxt/logs"));
+         assert_eq!(res.folders.log_folder_path, PathBuf::from("/home/steve/Data/MDR logs/cxt"));
 
          assert_eq!(res.db_pars.db_host, "localhost");
          assert_eq!(res.db_pars.db_user, "user_name");
@@ -323,7 +324,6 @@ mod tests {
          assert_eq!(res.db_pars.orgs_db_name, "ror");
          assert_eq!(res.db_pars.locs_db_name, "geo");
          assert_eq!(res.db_pars.umls_db_name, "uml");
-         assert_eq!(res.db_pars.pubs_db_name, "pub");
      }
     
 }

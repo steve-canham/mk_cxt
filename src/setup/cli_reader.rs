@@ -16,7 +16,6 @@
      pub import_orgs: bool,
      pub import_locs: bool,
      pub import_umls: bool,
-     pub import_pubs: bool,
  }
  
  pub fn fetch_valid_arguments(args: Vec<OsString>) -> Result<CliPars, AppError>
@@ -29,11 +28,10 @@
      let g_flag = parse_result.get_flag("g_flag");
      let c_flag = parse_result.get_flag("c_flag");
      let u_flag = parse_result.get_flag("u_flag");
-     let p_flag = parse_result.get_flag("p_flag");
  
     // if no flags do the (re)creation of lookups as the default
 
-    if !g_flag && !c_flag && !u_flag && !p_flag {
+    if !g_flag && !c_flag && !u_flag {
         k_flag = true;
     }
 
@@ -42,7 +40,6 @@
         import_orgs: g_flag,
         import_locs: c_flag,
         import_umls: u_flag,
-        import_pubs: p_flag,
      };
       
      Ok(CliPars {
@@ -88,14 +85,6 @@
              .help("A flag signifying that umls data needs to be processed")
              .action(clap::ArgAction::SetTrue)
         )
-        .arg(
-            Arg::new("p_flag")
-            .short('p')
-            .long("pubs")
-            .required(false)
-            .help("A flag signifying that publisher data needs to be processed")
-            .action(clap::ArgAction::SetTrue)
-       )
      .try_get_matches_from(args)
  
  }
@@ -117,8 +106,6 @@
          assert_eq!(res.flags.import_orgs, false);
          assert_eq!(res.flags.import_locs, false);
          assert_eq!(res.flags.import_umls, false);
-         assert_eq!(res.flags.import_pubs, false);
-
      }
  
      #[test]
@@ -131,13 +118,12 @@
          assert_eq!(res.flags.import_orgs, true);
          assert_eq!(res.flags.import_locs, false);
          assert_eq!(res.flags.import_umls, false);
-         assert_eq!(res.flags.import_pubs, false);
      }
 
      #[test]
      fn check_cli_with_all_flag() {
          let target = "dummy target";
-         let args : Vec<&str> = vec![target, "-g", "-c", "-u", "-k", "-p"];
+         let args : Vec<&str> = vec![target, "-g", "-c", "-u", "-k"];
          let test_args = args.iter().map(|x| x.to_string().into()).collect::<Vec<OsString>>();
  
          let res = fetch_valid_arguments(test_args).unwrap();
@@ -145,7 +131,6 @@
          assert_eq!(res.flags.import_orgs, true);
          assert_eq!(res.flags.import_locs, true);
          assert_eq!(res.flags.import_umls, true);
-         assert_eq!(res.flags.import_pubs, true);
      }
      
  }

@@ -114,7 +114,6 @@ pub async fn set_up_foreign_tables(pool: &PgPool, data_type: &str) -> Result<(),
         "locs" => dbp.locs_db_name, 
         "orgs" => dbp.orgs_db_name, 
         "umls" => dbp.umls_db_name, 
-        "pubs" => dbp.pubs_db_name, 
         _ => "".to_string(),
     };
 
@@ -122,7 +121,6 @@ pub async fn set_up_foreign_tables(pool: &PgPool, data_type: &str) -> Result<(),
         "locs" => "src", 
         "orgs" => "src", 
         "umls" => "icd", 
-        "pubs" => "pub", 
         _ => "",
     };
     
@@ -167,7 +165,6 @@ pub async fn drop_foreign_tables(pool: &PgPool, data_type: &str) -> Result<(), A
         "locs" => dbp.locs_db_name, 
         "orgs" => dbp.orgs_db_name, 
         "umls" => dbp.umls_db_name, 
-        "pubs" => dbp.pubs_db_name, 
         _ => "".to_string(),
     };
     
@@ -196,14 +193,18 @@ mod tests {
 
         let config = r#"
 [folders]
-log_folder_path="home/steve/Data/MDR source data/cxt/logs"
+log_folder_path="/home/steve/Data/MDR logs/cxt"
 
 [database]
 db_host="localhost"
 db_user="user_name"
 db_password="password"
-db_port="5433"
+db_port="5432"
 
+cnxt_db_name="cxt"
+orgs_db_name="ror"
+locs_db_name="geo"
+umls_db_name="uml"
 "#;
         let config_string = config.to_string();
         config_reader::populate_config_vars(&config_string).unwrap();
@@ -214,13 +215,11 @@ db_port="5433"
 
         let res = get_params(cli_pars, &config_string).unwrap();
 
-        assert_eq!(res.log_folder, PathBuf::from("home/steve/Data/MDR source data/cxt/logs"));
+        assert_eq!(res.log_folder, PathBuf::from("/home/steve/Data/MDR logs/cxt"));
         assert_eq!(res.flags.create_lups, true);
         assert_eq!(res.flags.import_locs, false);
         assert_eq!(res.flags.import_orgs, false);
         assert_eq!(res.flags.import_umls, false);
-        assert_eq!(res.flags.import_pubs, false);
-
     }
 
 
@@ -229,7 +228,7 @@ db_port="5433"
 
         let config = r#"
 [folders]
-log_folder_path="home/steve/Data/MDR source data/cxt/logs"
+log_folder_path="/home/steve/Data/MDR logs/cxt"
 
 [database]
 db_host="localhost"
@@ -241,25 +240,21 @@ cnxt_db_name="cxt"
 orgs_db_name="ror"
 locs_db_name="geo"
 umls_db_name="uml"
-pubs_db_name="pub"
-
 "#;
         let config_string = config.to_string();
         config_reader::populate_config_vars(&config_string).unwrap();
 
-        let args : Vec<&str> = vec!["dummy target", "-c", "-p"];
+        let args : Vec<&str> = vec!["dummy target", "-c", "-g"];
         let test_args = args.iter().map(|x| x.to_string().into()).collect::<Vec<OsString>>();
         let cli_pars = cli_reader::fetch_valid_arguments(test_args).unwrap();
 
         let res = get_params(cli_pars, &config_string).unwrap();
 
-        assert_eq!(res.log_folder, PathBuf::from("home/steve/Data/MDR source data/cxt/logs"));
+        assert_eq!(res.log_folder, PathBuf::from("/home/steve/Data/MDR logs/cxt"));
         assert_eq!(res.flags.create_lups, false);
         assert_eq!(res.flags.import_locs, true);
-        assert_eq!(res.flags.import_orgs, false);
+        assert_eq!(res.flags.import_orgs, true);
         assert_eq!(res.flags.import_umls, false);
-        assert_eq!(res.flags.import_pubs, true);
-
     }
    
     
@@ -268,7 +263,7 @@ pubs_db_name="pub"
 
         let config = r#"
 [folders]
-log_folder_path="home/steve/Data/MDR source data/cxt/logs"
+log_folder_path="/home/steve/Data/MDR logs/cxt"
 
 [database]
 db_host="localhost"
@@ -280,25 +275,21 @@ cnxt_db_name="cxt"
 orgs_db_name="ror"
 locs_db_name="geo"
 umls_db_name="uml"
-pubs_db_name="pub"
-
 "#;
         let config_string = config.to_string();
         config_reader::populate_config_vars(&config_string).unwrap();
         
-        let args : Vec<&str> = vec!["dummy target", "-c", "-u", "-g", "-p", "-k"];
+        let args : Vec<&str> = vec!["dummy target", "-c", "-u", "-g", "-k"];
         let test_args = args.iter().map(|x| x.to_string().into()).collect::<Vec<OsString>>();
         let cli_pars = cli_reader::fetch_valid_arguments(test_args).unwrap();
 
         let res = get_params(cli_pars, &config_string).unwrap();
 
-        assert_eq!(res.log_folder, PathBuf::from("home/steve/Data/MDR source data/cxt/logs"));
+        assert_eq!(res.log_folder, PathBuf::from("/home/steve/Data/MDR logs/cxt"));
         assert_eq!(res.flags.create_lups, true);
         assert_eq!(res.flags.import_locs, true);
         assert_eq!(res.flags.import_orgs, true);
         assert_eq!(res.flags.import_umls, true);
-        assert_eq!(res.flags.import_pubs, true);
-
     }
 }
 

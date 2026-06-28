@@ -5,7 +5,6 @@ mod lups;
 mod locs;
 mod orgs;
 mod umls;
-mod pubs;
 
 use setup::{cli_reader, set_up_foreign_tables, drop_foreign_tables};
 use err::AppError;
@@ -95,23 +94,6 @@ pub async fn run(args: Vec<OsString>) -> Result<(), AppError> {
         // remove the foreign tables from the context database
         
         //drop_foreign_tables(&pool, "umls").await?;
-        
-    }
-
-
-    if flags.import_pubs {
-
-        // Set up the publishing data within the context database, as a foreign table schema
-
-        // set_up_foreign_tables(&pool, "pubs").await?;
-
-        // Transfer the data to the relevant context schema
-
-        // Further process that data, if and as necessary
-
-        // remove the foreign tables from the context database
-        
-        //drop_foreign_tables(&pool, "pubs").await?;
         
     }
 
