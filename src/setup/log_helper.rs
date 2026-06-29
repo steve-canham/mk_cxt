@@ -1,7 +1,3 @@
-/***************************************************************************
- * Establishes the log for the programme's operation using log and log4rs, 
- * and includes various helper functions.
- ***************************************************************************/
 
  use chrono::Local;
  use std::path::PathBuf;
@@ -21,7 +17,7 @@
  pub fn setup_log (data_folder: &PathBuf) -> Result<log4rs::Handle, AppError> {
      let datetime_string = Local::now().format("%m-%d %H%M%S").to_string();
      let log_file_name = format!("context data creation at {}.log", datetime_string);
-     let log_file_path = [data_folder, &PathBuf::from(log_file_name)].iter().collect();
+     let log_file_path = data_folder.join(&PathBuf::from(&log_file_name));
      config_log (&log_file_path)
  }
  

@@ -1,25 +1,23 @@
-/***************************************************************************
- * 
- ***************************************************************************/
 
  use crate::AppError;
  use std::sync::OnceLock;
  use toml;
  use serde::Deserialize;
  use std::path::PathBuf;
+ use log::info;
  
- #[derive(Debug, Deserialize)]
+ #[derive(Deserialize)]
  pub struct TomlConfig {
     pub folders: Option<TomlFolderPars>, 
     pub database: Option<TomlDBPars>,
  }
  
- #[derive(Debug, Deserialize)]
+ #[derive(Deserialize)]
  pub struct TomlFolderPars {
     pub log_folder_path: Option<String>,
  }
  
- #[derive(Debug, Deserialize)]
+ #[derive(Deserialize)]
  pub struct TomlDBPars {
     pub db_host: Option<String>,
     pub db_user: Option<String>,
@@ -41,7 +39,7 @@
     pub log_folder_path: PathBuf,
 }
  
- #[derive(Debug, Clone)]
+ #[derive(Clone)]
  pub struct DBPars {
      pub db_host: String,
      pub db_user: String,
@@ -61,18 +59,9 @@
      let toml_config = toml::from_str::<TomlConfig>(&config_string)
          .map_err(|_| {AppError::ConfigurationError("Unable to parse config file.".to_string(),
          "File (app_config.toml) may be malformed.".to_string())})?;
- 
-     let toml_database = match toml_config.database {
-         Some(d) => d,
-         None => return Result::Err(AppError::ConfigurationError("Missing or misspelt configuration section.".to_string(),
-             "Cannot find a section called '[database]'.".to_string())),
-     };
 
-     let toml_folders = match toml_config.folders {
-        Some(f) => f,
-        None => return Result::Err(AppError::ConfigurationError("Missing or misspelt configuration section.".to_string(),
-           "Cannot find a section called '[folders]'.".to_string())),
-    };
+    let toml_folders = check_existence(toml_config.folders, "folders")?;
+    let toml_database = check_existence(toml_config.database, "database")?;
     
     let config_folders = verify_folder_parameters(toml_folders)?;
     let config_db_pars = verify_db_parameters(toml_database)?;
@@ -85,26 +74,22 @@
  }
  
  
- 
- 
  fn verify_db_parameters(toml_database: TomlDBPars) -> Result<DBPars, AppError> {
  
      // Check user name and password first as there are no defaults for these values.
      // They must therefore be present.
  
      let db_user = check_essential_string (toml_database.db_user, "database user name", "db_user")?; 
- 
      let db_password = check_essential_string (toml_database.db_password, "database user password", "db_password")?;
         
-     let db_host = check_defaulted_string (toml_database.db_host, "DB host", "localhost", "localhost");
-             
-     let db_port_as_string = check_defaulted_string (toml_database.db_port, "DB port", "5432", "5432");
+     let db_host = check_defaulted_string (toml_database.db_host, "DB host", "localhost");
+     let db_port_as_string = check_defaulted_string (toml_database.db_port, "DB port", "5432");
      let db_port: usize = db_port_as_string.parse().unwrap_or_else(|_| 5432);
  
-     let cxt_db_name = check_defaulted_string (toml_database.cxt_db_name, "context DB name", "cxt", "cxt");
-     let orgs_db_name = check_defaulted_string (toml_database.orgs_db_name, "organisations DB name", "ror", "ror");
-     let locs_db_name = check_defaulted_string (toml_database.locs_db_name, "location DB name", "geo", "geo");
-     let umls_db_name = check_defaulted_string (toml_database.umls_db_name, "UMLS DB name", "uml", "uml");
+     let cxt_db_name = check_defaulted_string (toml_database.cxt_db_name, "context DB name", "cxt");
+     let orgs_db_name = check_defaulted_string (toml_database.orgs_db_name, "organisations DB name", "ror");
+     let locs_db_name = check_defaulted_string (toml_database.locs_db_name, "location DB name", "geo");
+     let umls_db_name = check_defaulted_string (toml_database.umls_db_name, "UMLS DB name", "uml");
  
      Ok(DBPars {
          db_host,
@@ -128,32 +113,33 @@
     })
 }
  
- 
- fn check_essential_string (src_name: Option<String>, value_name: &str, config_name: &str) -> Result<String, AppError> {
-  
-     if let Some(s) = src_name && s.trim() != "" {
-        Ok(s)
-     }
-     else {
-        Result::Err(AppError::ConfigurationError("Essential configuration value missing or misspelt.".to_string(),
-        format!("Cannot find a value for {} ({}).", value_name, config_name)))
-     }
- }
- 
- 
- fn check_defaulted_string (src_name: Option<String>, value_name: &str, default_name: &str, default:  &str) -> String {
+fn check_existence<T>(section: Option<T>, section_name: &str) -> Result<T, AppError> {
+    section.ok_or_else(|| AppError::ConfigurationError("Missing or misspelt configuration section.".to_string(),
+        format!("Cannot find a section called '[{}]'",section_name)))
+}
 
-    if let Some(s) = src_name && s.trim() != "" {
-        s
-     }
-     else {
-        println!("No value found for {} path in config file - 
-        using the provided default value ('{}') instead.", value_name, default_name);
-        default.to_owned()
+fn check_essential_string (src_name: Option<String>, value_name: &str, config_name: &str) -> Result<String, AppError> {
+    match src_name {
+        Some(s) if !s.trim().is_empty() => Ok(s),
+        _ => {
+            Err(AppError::ConfigurationError("Essential configuration value missing or empty.".to_string(),
+                format!("Cannot find a non-empty value for {} ({}).", value_name, config_name)))
+        },
+    }
+ }
+  
+ fn check_defaulted_string (src_name: Option<String>, value_name: &str, default:  &str) -> String {
+     match src_name {
+         Some(s) if !s.trim().is_empty() => s,
+         _ => {
+             info!("No value found for the {} in config file - using the provided default value ('{}') instead.",
+                 value_name, default);
+             default.to_owned()
+         }
      }
  }
- 
- 
+
+ /*
  pub fn fetch_cxt_db_name() -> Result<String, AppError> {
      
      match DB_PARS.get() {
@@ -180,7 +166,7 @@
         None => Result::Err(AppError::MissingDBParameters()),
    }
 }
-  
+*/
  
 #[cfg(test)]
 mod tests {

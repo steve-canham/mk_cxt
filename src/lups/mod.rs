@@ -16,10 +16,12 @@ async fn execute_sql(sql: &str, pool: &Pool<Postgres>) -> Result<PgQueryResult, 
 
 pub async fn create_tables(pool: &Pool<Postgres>) -> Result<(), AppError> {
 
+    // N.B. ALL TO BE REVISED
+    
     create_schema_sql(pool).await?;
 
-    studies::create_contribution_types(pool).await?;
-    studies::create_gender_eligibility_types(pool).await?;
+    //studies::create_contribution_types(pool).await?;
+    //studies::create_gender_eligibility_types(pool).await?;
     studies::create_study_identifier_types(pool).await?;
     studies::create_study_feature_categories(pool).await?;
     studies::create_study_feature_types(pool).await?;
@@ -34,9 +36,9 @@ pub async fn create_tables(pool: &Pool<Postgres>) -> Result<(), AppError> {
     studies::create_trial_registries(pool).await?;
     studies::create_time_units(pool).await?;
 
-    objects::create_dataset_consent_types(pool).await?;
-    objects::create_dataset_deidentification_levels(pool).await?;
-    objects::create_dataset_recordkey_types(pool).await?;
+    //objects::create_dataset_consent_types(pool).await?;
+    //objects::create_dataset_deidentification_levels(pool).await?;
+    //objects::create_dataset_recordkey_types(pool).await?;
     objects::create_date_types(pool).await?;
     objects::create_description_types(pool).await?;
     objects::create_object_access_types(pool).await?;
@@ -55,10 +57,8 @@ pub async fn create_tables(pool: &Pool<Postgres>) -> Result<(), AppError> {
     orgs::create_org_relationship_types(pool).await?;
     orgs::create_org_types(pool).await?;
 
-
     lang::create_language_codes(pool).await?;
     lang::create_language_scripts(pool).await?;
-
 
     reset_message_sql(pool).await?;
 

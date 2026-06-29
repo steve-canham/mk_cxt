@@ -1,92 +1,7 @@
 use crate::err::AppError;
 use sqlx::{Pool, Postgres};
 
-
-
-pub async fn create_dataset_consent_types(pool: &Pool<Postgres>) -> Result<(), AppError> {
-
-    let sql = r#"drop table if exists lups.dataset_consent_types;
-    CREATE TABLE lups.dataset_consent_types (
-        id                 int4       NOT NULL PRIMARY KEY,
-        name               varchar    NULL,
-        description        varchar    NULL,
-	    list_order         int4       DEFAULT 10 NOT NULL
-    );"#;
-    
-    sqlx::raw_sql(&sql).execute(pool)
-        .await.map_err(|e| AppError::SqlxError(e, sql.to_string()))?;
-
-    let sql = r#"insert into lups.dataset_consent_types (id, name, description, list_order)
-       values 
-         (0, 'Not known', 'Information about consent for secondary use unavailable', 10),
-         (1, 'No explicit consent', 'No specific consent was given for the sharing of data or its re-use beyond the study in which it was originally collected.', 20),
-         (2, 'No restriction', 'No restriction explicitly stated in the consent documents, OR a broad consent to re-use is present without qualification.', 30),
-         (3, 'General research use', 'Consent indicates that use is allowed for general research use for any research purpose. From the DUO.', 40),
-         (4, 'Health / medical / biomedical research', 'Consent indicates that use is allowed for health/medical/biomedical purposes; does not include the study of population origins or ancestry, or the development of methods / algorithms (e.g. for ML). From the DUO.', 50),
-         (5, 'Disease-specific research', 'Consent indicates that use, for health/medical/biomedical research is allowed provided it is related to a specified disease (area). The disease (area) must be named or coded in the associated comments field. From the DUO.', 60),
-         (6, 'Consent specified, not elsewhere categorised', 'A descriptive statement regarding consent is available, but it does not fit into categories 1 - 5', 70);"#;
-    
-    sqlx::raw_sql(&sql).execute(pool)
-        .await.map_err(|e| AppError::SqlxError(e, sql.to_string()))?;
-
-    Ok(())
-}
-
-
-pub async fn create_dataset_deidentification_levels(pool: &Pool<Postgres>) -> Result<(), AppError> {
-
-    let sql = r#"drop table if exists lups.dataset_deidentification_levels;
-    CREATE TABLE lups.dataset_deidentification_levels (
-        id                 int4       NOT NULL PRIMARY KEY,
-        name               varchar    NULL,
-        description        varchar    NULL,
-	    list_order         int4       DEFAULT 10 NOT NULL
-    );"#;
-        
-    sqlx::raw_sql(&sql).execute(pool)
-        .await.map_err(|e| AppError::SqlxError(e, sql.to_string()))?;
-
-    let sql = r#"insert into lups.dataset_deidentification_levels (id, name, description, list_order)
-       values 
-        (0, 'Not known', 'No clear information available about the de-identification, if any, applied to the data', 10),
-        (1, 'No de-identification', 'Confirmed that no de-identification measures have been applied to the data set.', 20),
-        (2, 'De-identification applied', 'Some de-identification measures have been applied. Details should be described in comments and / or indicated in the linked boolean fields, or in separate documents.', 30),
-        (3, 'De-identification applied, primary outcomes re-assessed', 'Some de-identification measures have been applied and are described. In addition the data has been re-analysed against the primary outcomes and the results described.', 40);"#;
-
-    sqlx::raw_sql(&sql).execute(pool)
-        .await.map_err(|e| AppError::SqlxError(e, sql.to_string()))?;
-
-    Ok(())
-}
-
-
-pub async fn create_dataset_recordkey_types(pool: &Pool<Postgres>) -> Result<(), AppError> {
-
-    let sql = r#"drop table if exists lups.dataset_recordkey_types;
-    CREATE TABLE lups.dataset_recordkey_types (
-        id                 int4       NOT NULL PRIMARY KEY,
-        name               varchar    NULL,
-        description        varchar    NULL,
-	    list_order         int4       DEFAULT 10 NOT NULL
-    );"#;
-    
-    sqlx::raw_sql(&sql).execute(pool)
-        .await.map_err(|e| AppError::SqlxError(e, sql.to_string()))?;
-
-    let sql = r#"insert into lups.dataset_recordkey_types (id, name, description, list_order)
-       values 
-        (0, 'Not known', 'No clear information available about the record keys in use.', 10),
-        (2, 'Anonymised', 'Data controller or manager describes dataset as ‘anonymised’, in their interpretation of the term.', 20),
-        (3, 'Pseudonymised', 'Data controller or manager describes dataset as ‘pseudonymised’, in their interpretation of the term.', 30),
-        (4, 'Identifiable', 'Data controller or manager describes dataset as ‘identifiable’, in their interpretation of the term.', 40);"#;
-    
-    sqlx::raw_sql(&sql).execute(pool)
-        .await.map_err(|e| AppError::SqlxError(e, sql.to_string()))?;
-
-    Ok(())
-
-}
-
+// ALL TO BE REVISED
 
 pub async fn create_date_types(pool: &Pool<Postgres>) -> Result<(), AppError> {
 
@@ -679,3 +594,94 @@ pub async fn create_size_units(pool: &Pool<Postgres>) -> Result<(), AppError> {
 
     Ok(())
 }
+
+
+
+/*
+//The three functions below no longer required
+
+pub async fn create_dataset_consent_types(pool: &Pool<Postgres>) -> Result<(), AppError> {
+
+    let sql = r#"drop table if exists lups.dataset_consent_types;
+    CREATE TABLE lups.dataset_consent_types (
+        id                 int4       NOT NULL PRIMARY KEY,
+        name               varchar    NULL,
+        description        varchar    NULL,
+	    list_order         int4       DEFAULT 10 NOT NULL
+    );"#;
+    
+    sqlx::raw_sql(&sql).execute(pool)
+        .await.map_err(|e| AppError::SqlxError(e, sql.to_string()))?;
+
+    let sql = r#"insert into lups.dataset_consent_types (id, name, description, list_order)
+       values 
+         (0, 'Not known', 'Information about consent for secondary use unavailable', 10),
+         (1, 'No explicit consent', 'No specific consent was given for the sharing of data or its re-use beyond the study in which it was originally collected.', 20),
+         (2, 'No restriction', 'No restriction explicitly stated in the consent documents, OR a broad consent to re-use is present without qualification.', 30),
+         (3, 'General research use', 'Consent indicates that use is allowed for general research use for any research purpose. From the DUO.', 40),
+         (4, 'Health / medical / biomedical research', 'Consent indicates that use is allowed for health/medical/biomedical purposes; does not include the study of population origins or ancestry, or the development of methods / algorithms (e.g. for ML). From the DUO.', 50),
+         (5, 'Disease-specific research', 'Consent indicates that use, for health/medical/biomedical research is allowed provided it is related to a specified disease (area). The disease (area) must be named or coded in the associated comments field. From the DUO.', 60),
+         (6, 'Consent specified, not elsewhere categorised', 'A descriptive statement regarding consent is available, but it does not fit into categories 1 - 5', 70);"#;
+    
+    sqlx::raw_sql(&sql).execute(pool)
+        .await.map_err(|e| AppError::SqlxError(e, sql.to_string()))?;
+
+    Ok(())
+}
+
+
+pub async fn create_dataset_deidentification_levels(pool: &Pool<Postgres>) -> Result<(), AppError> {
+
+    let sql = r#"drop table if exists lups.dataset_deidentification_levels;
+    CREATE TABLE lups.dataset_deidentification_levels (
+        id                 int4       NOT NULL PRIMARY KEY,
+        name               varchar    NULL,
+        description        varchar    NULL,
+	    list_order         int4       DEFAULT 10 NOT NULL
+    );"#;
+        
+    sqlx::raw_sql(&sql).execute(pool)
+        .await.map_err(|e| AppError::SqlxError(e, sql.to_string()))?;
+
+    let sql = r#"insert into lups.dataset_deidentification_levels (id, name, description, list_order)
+       values 
+        (0, 'Not known', 'No clear information available about the de-identification, if any, applied to the data', 10),
+        (1, 'No de-identification', 'Confirmed that no de-identification measures have been applied to the data set.', 20),
+        (2, 'De-identification applied', 'Some de-identification measures have been applied. Details should be described in comments and / or indicated in the linked boolean fields, or in separate documents.', 30),
+        (3, 'De-identification applied, primary outcomes re-assessed', 'Some de-identification measures have been applied and are described. In addition the data has been re-analysed against the primary outcomes and the results described.', 40);"#;
+
+    sqlx::raw_sql(&sql).execute(pool)
+        .await.map_err(|e| AppError::SqlxError(e, sql.to_string()))?;
+
+    Ok(())
+}
+
+
+pub async fn create_dataset_recordkey_types(pool: &Pool<Postgres>) -> Result<(), AppError> {
+
+    let sql = r#"drop table if exists lups.dataset_recordkey_types;
+    CREATE TABLE lups.dataset_recordkey_types (
+        id                 int4       NOT NULL PRIMARY KEY,
+        name               varchar    NULL,
+        description        varchar    NULL,
+	    list_order         int4       DEFAULT 10 NOT NULL
+    );"#;
+    
+    sqlx::raw_sql(&sql).execute(pool)
+        .await.map_err(|e| AppError::SqlxError(e, sql.to_string()))?;
+
+    let sql = r#"insert into lups.dataset_recordkey_types (id, name, description, list_order)
+       values 
+        (0, 'Not known', 'No clear information available about the record keys in use.', 10),
+        (2, 'Anonymised', 'Data controller or manager describes dataset as ‘anonymised’, in their interpretation of the term.', 20),
+        (3, 'Pseudonymised', 'Data controller or manager describes dataset as ‘pseudonymised’, in their interpretation of the term.', 30),
+        (4, 'Identifiable', 'Data controller or manager describes dataset as ‘identifiable’, in their interpretation of the term.', 40);"#;
+    
+    sqlx::raw_sql(&sql).execute(pool)
+        .await.map_err(|e| AppError::SqlxError(e, sql.to_string()))?;
+
+    Ok(())
+
+}
+*/
+

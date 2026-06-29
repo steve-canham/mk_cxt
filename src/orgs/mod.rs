@@ -10,19 +10,15 @@ use sqlx::{Pool, Postgres};
 pub async fn load_ror_data(pool: &Pool<Postgres>) -> Result<(), AppError> {
 
     // These simply load the ROR data into matching tables in the orgs schema
-    // of the cxt DB. The ror names are loaded in two forms, the original
-    // and a 'name_to_match' form, which is lower-cased, shorn of full stops, 
-    // commas and brackets, and has apostrophes replaced by single right quotes.
+    // of the cxt DB.
 
-    ror::load_ror_orgs(pool).await?;
-    ror::load_ror_org_names(pool).await?;
-    ror::load_ror_org_rels(pool).await?;
-    ror::load_ror_org_types(pool).await?;
-    ror::load_ror_org_locs(pool).await?;
-
+    ror::make_ror_tables(pool).await?;
+    ror::fill_ror_tables(pool).await?;
     Ok(())
 }
 
+
+/* 
 
 pub async fn process_ror_data(pool: &Pool<Postgres>) -> Result<(), AppError> {
     
@@ -104,3 +100,4 @@ pub async fn process_ror_data(pool: &Pool<Postgres>) -> Result<(), AppError> {
 
     Ok(())
 }
+*/

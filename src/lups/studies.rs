@@ -1,109 +1,7 @@
 use crate::err::AppError;
 use sqlx::{Pool, Postgres};
 
-
-
-
-pub async fn create_contribution_types(pool: &Pool<Postgres>) -> Result<(), AppError> {
-
-    let sql = r#"drop table if exists lups.contribution_types;
-    CREATE TABLE lups.contribution_types (
-        id                 int4       NOT NULL PRIMARY KEY,
-        name               varchar    NULL,
-        applies_to         varchar    NULL,
-        description        varchar    NULL,
-        use_in_data_entry  bool       NULL,
-        list_order         int4       DEFAULT 10 NULL
-    );"#;
-    
-    sqlx::raw_sql(&sql).execute(pool)
-        .await.map_err(|e| AppError::SqlxError(e, sql.to_string()))?;
-
-    let sql = r#"insert into lups.contribution_types (id, name, applies_to, description, use_in_data_entry, list_order)
-       values
-        (0, 'Not yet known', 'both', 'Dummy value supplied by default on entity creation.', false, 999),
-        (11, 'Creator / Author', 'both', 'The main researchers involved in producing the data, or the authors of the publication, in priority order. May be a corporate, research group or personal name.', true, 45), 
-        (12, 'Resource contact', 'individual', 'From DC, person with knowledge of how to access, troubleshoot, or otherwise field issues related to the resource. May also be “Point of Contact” in organisation that controls access to the resource.', true, 25),
-        (13, 'Data collector', 'both', 'Person/institution responsible for finding, gathering/collecting data under the guidelines of the author(s) or Principal Investigator (PI).', true, 320),
-        (14, 'Data curator', 'both', 'Person/institution tasked with reviewing, enhancing, cleaning, or standardizing metadata and the associated data submitted for storage, use, and maintenance within a data centre or repository.', true, 325),
-        (15, 'Data manager', 'both', 'Person (or organisation with a staff of data managers, such as a data centre) responsible for maintaining the finished resource, including ensuring that the resource is periodically “refreshed” in terms of software/hardware support, is kept available and is protected from unauthorized access.', true, 330),
-        (16, 'Distributor', 'organisation', 'Institution tasked with responsibility to generate/disseminate copies of the resource in either electronic or print form. Works stored in more than one archive/repository may credit each as a distributor.', false, 235),
-        (17, 'Editor', 'individual', 'A person who oversees the details related to the publication format of the resource. If the Editor is to be credited in place of multiple creators, the Editor’s name may be supplied as Creator, with “(Ed.)” appended to the name.', false, 50),
-        (18, 'Hosting institution', 'organisation', 'Typically, the organisation allowing the resource to be available on the internet through the provision of its hardware/software/operating support. May also be used for an organisation that stores the data offline. Often a data centre (if that data centre is not the “publisher” of the resource).', false, 245),
-        (19, 'Producer (DC)', 'both', 'Typically a person or organisation responsible for the artistry and form of a media product. In the data industry, this may be a company “producing” DVDs that package data for future dissemination by a distributor. ', false, 250),
-        (26, 'Researcher', 'individual', 'A person involved in analyzing data or the results of an experiment or formal study. May indicate an intern or assistant to one of the authors who helped with research but who was not so “key” as to be listed as an author. Should be a person, not an institution.', true, 85),
-        (27, 'Research group', 'organisation', 'Typically refers to a group of individuals with a lab, department, or division; the group has a particular, defined focus of activity. May operate at a narrower level of scope; may or may not hold less administrative responsibility than a project team.', true, 120),
-        (28, 'Resource rights holder ', 'both', 'Person or institution owning or managing property rights, including intellectual property rights over the resource.', true, 395),
-     
-        (50, 'Study lead', 'individual', 'The individual who leads and co-ordinates the scientific and clinical activity within a clinical study, including co-ordinating the work of principal investigators at clinical sites. May be known as the Co-ordinating Investigator, the Study Chair, Study Director, the Scientific Contact or similar terms.', true, 10),
-        (51, 'Principal investigator', 'individual', 'The individual responsible for the safe conduct of a clinical trial at a particular clinical site.', true, 15),
-        (52, 'Clinical study manager', 'individual', 'An individual responsible for the operational management of a clinical study. Similar to a Project Manager though a study manager is often involved in the management of data and data collection.', true, 20),
-        (53, 'Independent monitoring committee member', 'individual', 'A member of a safety monitoring committee for a clinical trial, independent of the researchers and research activity.', true, 160),
-        (54, 'Statistician', 'individual', 'A member of the research team specifically identified as provifing statistical analysis for the study.', true, 160),
-        (55, 'Research group member', 'individual', 'From PubMed, an individual (e.g., collaborator or investigator) who is not an author of a paper but is listed as a member of a collective/corporate group that is an author of the paper.', true, 220),
-      
-        (60, 'Sponsor-investigator', 'individual', 'An individual with the role of sponsor as well as being the co-ordinating investigator for the study.', true, 210),
-       
-        (70, 'Scientific contact', 'both', 'An individual or office, e.g. the study lead or a representative of the sponsor, acting as an initial contact point.', true, 27),
-        (71, 'Public contact', 'both', 'An individual or office designated as dealing with non-scientific queries from the public or press.', true, 29),
-        (72, 'Recruitment contact', 'both', 'An individual or office designated as providing periodic updates on recruitment information or status, at all sites, usually for monitoring purposes.', false, 31),
-        (73, 'Funder contact', 'both', 'An individual or office representing the funder and acting as an initial contact point.', false, 33),
-        (74, 'Results contact', 'both', 'The individual, occasionally organisation, to be contacted for further information on the study results.', true, 35),
-        (75, 'Ethics contact', 'both', 'An individual or office designated as dealing with queries about the study’s ethical approval.', true, 129),
-        
-        (90, 'Ethics approval organisation', 'organisation', 'The organisation that provided ethical approval for the study', true, 128),
-        (91, 'Clinical organisation', 'organisation', 'Organisation, usually a primary or secondary health care organisation, that manages one or more of the sites where a clinical study takes place.', true, 195),
-        (92, 'Clinical site', 'organisation', 'Organisation or location, usually in a primary or secondary health care organisation, that is one of the sites where a clinical study takes place.', false, 200),
-
-        (100, 'Sponsor', 'organisation', 'The organisation or individual that for a clinical trial has the formal, legal role of a clinical trial sponsor, and for observational studies has an analogous responsibility for the overall organisation and conduct of the study.', true, 130),
-        (110, 'Collaborating organisation', 'organisation', 'May be listed as a secondary sponsor, an organisation other than the lead sponsor involved in supporting a study, but not identified in a specific role.', true, 205),
-        (111, 'Study funder', 'organisation', 'An organisation providing some or all of the additional funds required for the study.', true, 150),
-        (112, 'Medicinal product supplier', 'organisation', 'Organisation that provides one or more of the medicines investigated in a clinical study.', true, 165),
-        (113, 'Medical device supplier', 'organisation', 'Organisation that provides one or more of the medical devices in a clinical study.', true, 170),
-        (114, 'Logistics support organisation', 'organisation', 'Organisation that provided logistical input, e.g. provides a drug distribution service.', true, 175),
-        (115, 'Research infratructure', 'organisation', 'Organisation that provided scientific infrastructure support within the study, e.g. a national or international research network.', true, 180),
-        (116, 'Central laboratory', 'organisation', 'Organisation that provided a central specialist laboratory testing facility within the study.', true, 185),
-        (117, 'Central imaging facility', 'organisation', 'Organisation that provided a central specialist imaging or scanning facility within the study.', true, 190),
-        (118, 'Commercial research organisation', 'organisation', 'A commercial organisation used by the sponsor to carry out study and data management, usually referred to as a CRO', true, 127),
-        (120, 'Study sponsor and funder', 'organisation', 'The organisation that for a clinical trial has the formal, legal role of a clinical trial sponsor, and which is also listed as a study funder.', true, 155),
-        
-        (990, 'Other', 'both', 'Any person or institution making a significant contribution to the development and/or maintenance of the resource, but whose contribution does not “fit” other controlled vocabulary for contributorType.', true, 900);"#;
-  
-
-    sqlx::raw_sql(&sql).execute(pool)
-        .await.map_err(|e| AppError::SqlxError(e, sql.to_string()))?;
-
-    Ok(())
-
-}
-
-
-pub async fn create_gender_eligibility_types(pool: &Pool<Postgres>) -> Result<(), AppError> {
-
-    let sql = r#"drop table if exists lups.gender_eligibility_types;
-    CREATE TABLE lups.gender_eligibility_types (
-        id                 int4       NOT NULL PRIMARY KEY,
-        name               varchar    NULL,
-        description        varchar    NULL,
-	    use_in_data_entry  bool       NULL,
-	    list_order         int4       DEFAULT 10 NOT NULL
-    );"#;
-    
-    sqlx::raw_sql(&sql).execute(pool)
-        .await.map_err(|e| AppError::SqlxError(e, sql.to_string()))?;
-
-    let sql = r#"insert into lups.gender_eligibility_types (id, name, description, 
-          use_in_data_entry, list_order)
-       values 
-       (1, 'Female', 'Study recruits only female participants', true, 10),
-       (2, 'Male', 'Study recruits only male participants', true, 20),
-       (3, 'Both', 'Study open to both male and female participants', true, 30);"#;
-
-    sqlx::raw_sql(&sql).execute(pool)
-        .await.map_err(|e| AppError::SqlxError(e, sql.to_string()))?;
-
-    Ok(())
-}
+// ALL TO BE REVISED
 
  
 pub async fn create_study_identifier_types(pool: &Pool<Postgres>) -> Result<(), AppError> {
@@ -756,4 +654,111 @@ pub async fn create_trial_registries(pool: &Pool<Postgres>) -> Result<(), AppErr
 
     Ok(())
 }
+
+
+
+/* 
+// Two functions below no lomger required 
+
+
+pub async fn create_contribution_types(pool: &Pool<Postgres>) -> Result<(), AppError> {
+
+    let sql = r#"drop table if exists lups.contribution_types;
+    CREATE TABLE lups.contribution_types (
+        id                 int4       NOT NULL PRIMARY KEY,
+        name               varchar    NULL,
+        applies_to         varchar    NULL,
+        description        varchar    NULL,
+        use_in_data_entry  bool       NULL,
+        list_order         int4       DEFAULT 10 NULL
+    );"#;
     
+    sqlx::raw_sql(&sql).execute(pool)
+        .await.map_err(|e| AppError::SqlxError(e, sql.to_string()))?;
+
+    let sql = r#"insert into lups.contribution_types (id, name, applies_to, description, use_in_data_entry, list_order)
+       values
+        (0, 'Not yet known', 'both', 'Dummy value supplied by default on entity creation.', false, 999),
+        (11, 'Creator / Author', 'both', 'The main researchers involved in producing the data, or the authors of the publication, in priority order. May be a corporate, research group or personal name.', true, 45), 
+        (12, 'Resource contact', 'individual', 'From DC, person with knowledge of how to access, troubleshoot, or otherwise field issues related to the resource. May also be “Point of Contact” in organisation that controls access to the resource.', true, 25),
+        (13, 'Data collector', 'both', 'Person/institution responsible for finding, gathering/collecting data under the guidelines of the author(s) or Principal Investigator (PI).', true, 320),
+        (14, 'Data curator', 'both', 'Person/institution tasked with reviewing, enhancing, cleaning, or standardizing metadata and the associated data submitted for storage, use, and maintenance within a data centre or repository.', true, 325),
+        (15, 'Data manager', 'both', 'Person (or organisation with a staff of data managers, such as a data centre) responsible for maintaining the finished resource, including ensuring that the resource is periodically “refreshed” in terms of software/hardware support, is kept available and is protected from unauthorized access.', true, 330),
+        (16, 'Distributor', 'organisation', 'Institution tasked with responsibility to generate/disseminate copies of the resource in either electronic or print form. Works stored in more than one archive/repository may credit each as a distributor.', false, 235),
+        (17, 'Editor', 'individual', 'A person who oversees the details related to the publication format of the resource. If the Editor is to be credited in place of multiple creators, the Editor’s name may be supplied as Creator, with “(Ed.)” appended to the name.', false, 50),
+        (18, 'Hosting institution', 'organisation', 'Typically, the organisation allowing the resource to be available on the internet through the provision of its hardware/software/operating support. May also be used for an organisation that stores the data offline. Often a data centre (if that data centre is not the “publisher” of the resource).', false, 245),
+        (19, 'Producer (DC)', 'both', 'Typically a person or organisation responsible for the artistry and form of a media product. In the data industry, this may be a company “producing” DVDs that package data for future dissemination by a distributor. ', false, 250),
+        (26, 'Researcher', 'individual', 'A person involved in analyzing data or the results of an experiment or formal study. May indicate an intern or assistant to one of the authors who helped with research but who was not so “key” as to be listed as an author. Should be a person, not an institution.', true, 85),
+        (27, 'Research group', 'organisation', 'Typically refers to a group of individuals with a lab, department, or division; the group has a particular, defined focus of activity. May operate at a narrower level of scope; may or may not hold less administrative responsibility than a project team.', true, 120),
+        (28, 'Resource rights holder ', 'both', 'Person or institution owning or managing property rights, including intellectual property rights over the resource.', true, 395),
+     
+        (50, 'Study lead', 'individual', 'The individual who leads and co-ordinates the scientific and clinical activity within a clinical study, including co-ordinating the work of principal investigators at clinical sites. May be known as the Co-ordinating Investigator, the Study Chair, Study Director, the Scientific Contact or similar terms.', true, 10),
+        (51, 'Principal investigator', 'individual', 'The individual responsible for the safe conduct of a clinical trial at a particular clinical site.', true, 15),
+        (52, 'Clinical study manager', 'individual', 'An individual responsible for the operational management of a clinical study. Similar to a Project Manager though a study manager is often involved in the management of data and data collection.', true, 20),
+        (53, 'Independent monitoring committee member', 'individual', 'A member of a safety monitoring committee for a clinical trial, independent of the researchers and research activity.', true, 160),
+        (54, 'Statistician', 'individual', 'A member of the research team specifically identified as provifing statistical analysis for the study.', true, 160),
+        (55, 'Research group member', 'individual', 'From PubMed, an individual (e.g., collaborator or investigator) who is not an author of a paper but is listed as a member of a collective/corporate group that is an author of the paper.', true, 220),
+      
+        (60, 'Sponsor-investigator', 'individual', 'An individual with the role of sponsor as well as being the co-ordinating investigator for the study.', true, 210),
+       
+        (70, 'Scientific contact', 'both', 'An individual or office, e.g. the study lead or a representative of the sponsor, acting as an initial contact point.', true, 27),
+        (71, 'Public contact', 'both', 'An individual or office designated as dealing with non-scientific queries from the public or press.', true, 29),
+        (72, 'Recruitment contact', 'both', 'An individual or office designated as providing periodic updates on recruitment information or status, at all sites, usually for monitoring purposes.', false, 31),
+        (73, 'Funder contact', 'both', 'An individual or office representing the funder and acting as an initial contact point.', false, 33),
+        (74, 'Results contact', 'both', 'The individual, occasionally organisation, to be contacted for further information on the study results.', true, 35),
+        (75, 'Ethics contact', 'both', 'An individual or office designated as dealing with queries about the study’s ethical approval.', true, 129),
+        
+        (90, 'Ethics approval organisation', 'organisation', 'The organisation that provided ethical approval for the study', true, 128),
+        (91, 'Clinical organisation', 'organisation', 'Organisation, usually a primary or secondary health care organisation, that manages one or more of the sites where a clinical study takes place.', true, 195),
+        (92, 'Clinical site', 'organisation', 'Organisation or location, usually in a primary or secondary health care organisation, that is one of the sites where a clinical study takes place.', false, 200),
+
+        (100, 'Sponsor', 'organisation', 'The organisation or individual that for a clinical trial has the formal, legal role of a clinical trial sponsor, and for observational studies has an analogous responsibility for the overall organisation and conduct of the study.', true, 130),
+        (110, 'Collaborating organisation', 'organisation', 'May be listed as a secondary sponsor, an organisation other than the lead sponsor involved in supporting a study, but not identified in a specific role.', true, 205),
+        (111, 'Study funder', 'organisation', 'An organisation providing some or all of the additional funds required for the study.', true, 150),
+        (112, 'Medicinal product supplier', 'organisation', 'Organisation that provides one or more of the medicines investigated in a clinical study.', true, 165),
+        (113, 'Medical device supplier', 'organisation', 'Organisation that provides one or more of the medical devices in a clinical study.', true, 170),
+        (114, 'Logistics support organisation', 'organisation', 'Organisation that provided logistical input, e.g. provides a drug distribution service.', true, 175),
+        (115, 'Research infratructure', 'organisation', 'Organisation that provided scientific infrastructure support within the study, e.g. a national or international research network.', true, 180),
+        (116, 'Central laboratory', 'organisation', 'Organisation that provided a central specialist laboratory testing facility within the study.', true, 185),
+        (117, 'Central imaging facility', 'organisation', 'Organisation that provided a central specialist imaging or scanning facility within the study.', true, 190),
+        (118, 'Commercial research organisation', 'organisation', 'A commercial organisation used by the sponsor to carry out study and data management, usually referred to as a CRO', true, 127),
+        (120, 'Study sponsor and funder', 'organisation', 'The organisation that for a clinical trial has the formal, legal role of a clinical trial sponsor, and which is also listed as a study funder.', true, 155),
+        
+        (990, 'Other', 'both', 'Any person or institution making a significant contribution to the development and/or maintenance of the resource, but whose contribution does not “fit” other controlled vocabulary for contributorType.', true, 900);"#;
+  
+
+    sqlx::raw_sql(&sql).execute(pool)
+        .await.map_err(|e| AppError::SqlxError(e, sql.to_string()))?;
+
+    Ok(())
+
+}
+
+
+pub async fn create_gender_eligibility_types(pool: &Pool<Postgres>) -> Result<(), AppError> {
+
+    let sql = r#"drop table if exists lups.gender_eligibility_types;
+    CREATE TABLE lups.gender_eligibility_types (
+        id                 int4       NOT NULL PRIMARY KEY,
+        name               varchar    NULL,
+        description        varchar    NULL,
+	    use_in_data_entry  bool       NULL,
+	    list_order         int4       DEFAULT 10 NOT NULL
+    );"#;
+    
+    sqlx::raw_sql(&sql).execute(pool)
+        .await.map_err(|e| AppError::SqlxError(e, sql.to_string()))?;
+
+    let sql = r#"insert into lups.gender_eligibility_types (id, name, description, 
+          use_in_data_entry, list_order)
+       values 
+       (1, 'Female', 'Study recruits only female participants', true, 10),
+       (2, 'Male', 'Study recruits only male participants', true, 20),
+       (3, 'Both', 'Study open to both male and female participants', true, 30);"#;
+
+    sqlx::raw_sql(&sql).execute(pool)
+        .await.map_err(|e| AppError::SqlxError(e, sql.to_string()))?;
+
+    Ok(())
+}
+*/

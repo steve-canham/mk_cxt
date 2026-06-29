@@ -1,3 +1,4 @@
+/*
 use sqlx::{Pool, Postgres};
 use crate::AppError;
 use log::info;
@@ -223,6 +224,6 @@ pub async fn add_names_without_thes(pool: &Pool<Postgres>) -> Result<(), AppErro
     Ok(())
 }
 
-
+*/
 
 

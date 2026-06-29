@@ -5,96 +5,60 @@ mod lups;
 mod locs;
 mod orgs;
 mod umls;
+mod sql;
 
-use setup::{cli_reader, set_up_foreign_tables, drop_foreign_tables};
+use setup::db_pars::{get_db_pool, set_up_foreign_tables, drop_foreign_tables};
 use err::AppError;
 use std::ffi::OsString;
-use std::path::PathBuf;
-use std::fs;
 
 pub async fn run(args: Vec<OsString>) -> Result<(), AppError> {
-
-    let cli_pars: cli_reader::CliPars;
-    cli_pars = cli_reader::fetch_valid_arguments(args)?;
-    let flags = cli_pars.flags;
-
-    let config_file = PathBuf::from("./app_config.toml");
-    let config_string: String = fs::read_to_string(&config_file)
-                                .map_err(|e| AppError::IoReadErrorWithPath(e, config_file))?;
-                              
-    let params = setup::get_params(cli_pars, &config_string)?;
+           
+    let params = setup::combine_params(args)?;
     setup::establish_log(&params)?;
-    let pool = setup::get_cxt_db_pool().await?;
-
+    let pool = get_db_pool().await?;
+    let flags = params.flags;
+    
     if flags.create_lups {
-
-        // (re)creates the MDR based lookup tables
-
-        lups::create_tables(&pool).await?;
-      
+        lups::create_tables(&pool).await?;                // (re)creates the MDR based lookup tables in cxt.lup
     }
-         
+
     if flags.import_locs {
-        
-        // Set up the location data within the context database, as a foreign table schema
 
-        set_up_foreign_tables(&pool, "locs").await?;
+        set_up_foreign_tables(&pool, "locs").await?;      // Set up the location data as a foreign table schema
 
-        // Transfer the data to the relevant context schema
+        locs::create_mdr_tables(&pool).await?;            // Transfer the data to the relevant context schema
 
-        locs::create_mdr_tables(&pool).await?;
-        
-        // Further process that data, if and as necessary
-
-        locs::create_city_data(&pool).await?;
+        locs::create_city_data(&pool).await?;             // Further process that data, if and as necessary
         locs::create_country_data(&pool).await?;
         locs::create_scope_data(&pool).await?;
         
         locs::create_lang_codes_full_table(&pool).await?;
         locs::transfer_lang_codes_to_cxt(&pool).await?;
-      
-        // remove the foreign tables from the context database
 
-        drop_foreign_tables(&pool, "locs").await?;
+        drop_foreign_tables(&pool, "locs").await?;        // remove the foreign tables from the context database
     }
 
 
     if flags.import_orgs {
 
-        // Set up the organisation data within the context database, as a foreign table schema
+        set_up_foreign_tables(&pool, "orgs").await?;  // Set up the ror data within the context database, as a foreign table schema
+        orgs::load_ror_data(&pool).await?;            // Transfer the data to the relevant context schema
 
-        set_up_foreign_tables(&pool, "orgs").await?;
+        //·orgs::process_ror_data(&pool).await?;      // Further process that data, if and as necessary
 
-        // Transfer the data to the relevant context schema
-
-        orgs::load_ror_data(&pool).await?;
-
-        orgs::process_ror_data(&pool).await?;
-        
-
-        // Further process that data, if and as necessary
-
-        // remove the foreign tables from the context database
-
-        drop_foreign_tables(&pool, "orgs").await?;
-        
+        drop_foreign_tables(&pool, "orgs").await?;    // remove the foreign tables from the context database
     }
 
 
     if flags.import_umls {
 
-        // Set up the terminology data within the context database, as a foreign table schema
-
-        // set_up_foreign_tables(&pool, "umls").await?;
+        // set_up_foreign_tables(&pool, "uml").await?;    // Set up the terminology data within the context database, as a foreign table schema
 
         // Transfer the data to the relevant context schema
 
         // Further process that data, if and as necessary
 
-        // remove the foreign tables from the context database
-        
-        //drop_foreign_tables(&pool, "umls").await?;
-        
+        //drop_foreign_tables(&pool, "uml").await?;      // remove the foreign tables from the context database
     }
 
     Ok(())  
