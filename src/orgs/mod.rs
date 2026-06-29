@@ -2,11 +2,12 @@ mod ror;
 mod names;
 mod langs;
 mod acros;
+mod companies;
 
 use crate::err::AppError;
 use sqlx::{Pool, Postgres};
 
-
+/* 
 pub async fn load_ror_data(pool: &Pool<Postgres>) -> Result<(), AppError> {
 
     // These simply load the ROR data into matching tables in the orgs schema
@@ -16,8 +17,18 @@ pub async fn load_ror_data(pool: &Pool<Postgres>) -> Result<(), AppError> {
     ror::fill_ror_tables(pool).await?;
     Ok(())
 }
+*/
 
+pub async fn process_ror_data(pool: &Pool<Postgres>) -> Result<(), AppError> {
 
+    // As an initial task, separate out and simplify company names
+
+    companies::create_companies_table(pool).await?;
+    companies::correct_bracketed_company_names(pool).await?;
+    companies::remove_company_suffices(pool).await?;
+
+    Ok(())
+}
 /* 
 
 pub async fn process_ror_data(pool: &Pool<Postgres>) -> Result<(), AppError> {

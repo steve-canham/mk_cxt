@@ -42,9 +42,9 @@ pub async fn run(args: Vec<OsString>) -> Result<(), AppError> {
     if flags.import_orgs {
 
         set_up_foreign_tables(&pool, "orgs").await?;  // Set up the ror data within the context database, as a foreign table schema
-        orgs::load_ror_data(&pool).await?;            // Transfer the data to the relevant context schema
+        //orgs::load_ror_data(&pool).await?;            // Transfer the data to the relevant context schema
 
-        //·orgs::process_ror_data(&pool).await?;      // Further process that data, if and as necessary
+        orgs::process_ror_data(&pool).await?;      // Further process that data, if and as necessary
 
         drop_foreign_tables(&pool, "orgs").await?;    // remove the foreign tables from the context database
     }

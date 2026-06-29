@@ -1,7 +1,9 @@
+/*
 use sqlx::{Pool, Postgres};
 use crate::AppError;
 use crate::sql::make_ror_tables;
 use log::info;
+
 
 pub async fn make_ror_tables(pool: &Pool<Postgres>) -> Result<(), AppError> {
     let sql = make_ror_tables::get_sql();
@@ -104,5 +106,6 @@ pub async fn execute_sql(pool: &Pool<Postgres>, sql: &str) -> Result<u64, AppErr
         .map_err(|e| AppError::SqlxError(e, sql.to_string()))?;
     Ok(res.rows_affected())
 }
+*/
 
 

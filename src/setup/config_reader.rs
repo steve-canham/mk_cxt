@@ -135,38 +135,10 @@ fn check_essential_string (src_name: Option<String>, value_name: &str, config_na
              info!("No value found for the {} in config file - using the provided default value ('{}') instead.",
                  value_name, default);
              default.to_owned()
-         }
-     }
- }
-
- /*
- pub fn fetch_cxt_db_name() -> Result<String, AppError> {
-     
-     match DB_PARS.get() {
-          Some(dbp) => Ok(dbp.cxt_db_name.clone()),
-          None => Result::Err(AppError::MissingDBParameters()),
-     }
- }
- 
- 
- pub fn fetch_db_conn_string(db_name: &String) -> Result<String, AppError> {
-     
-     match DB_PARS.get() {
-          Some(dbp) =>  Ok(format!("postgres://{}:{}@{}:{}/{}", 
-                                dbp.db_user, dbp.db_password, dbp.db_host, dbp.db_port, db_name)),
-          None => Result::Err(AppError::MissingDBParameters()),
-     }
- }
-
- 
- pub fn fetch_db_pars() -> Result<DBPars, AppError> {
-    
-    match DB_PARS.get() {
-        Some(dbp) => Ok(dbp.clone()),
-        None => Result::Err(AppError::MissingDBParameters()),
-   }
+        },
+    }
 }
-*/
+
  
 #[cfg(test)]
 mod tests {
