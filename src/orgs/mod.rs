@@ -25,7 +25,9 @@ pub async fn process_ror_data(pool: &Pool<Postgres>) -> Result<(), AppError> {
 
     companies::create_companies_table(pool).await?;
     companies::correct_bracketed_company_names(pool).await?;
-    companies::remove_company_suffices(pool).await?;
+    companies::remove_company_suffixes(pool).await?;
+    companies::create_revised_orgs(pool).await?;
+    companies::process_multisite_companies(pool).await?;
 
     Ok(())
 }
